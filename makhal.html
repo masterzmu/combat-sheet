@@ -1,0 +1,5347 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <title>Makhal “Wildwalker” — Combat Tool (L9 Ranger)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Source+Sans+3:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #12151a;
+      --bg2: #1a1f27;
+      --bg3: #232a35;
+      --border: #2e3848;
+      --text: #e8edf5;
+      --muted: #8b98ab;
+      --accent: #8bb8c9;
+      --good: #3ecf8e;
+      --warn: #f0b429;
+      --danger: #ef6b6b;
+      --fire: #ff7a3d;
+      --war: #c9a227;
+      --stone: #9aa3b2;
+      --cloud: #7eb8e8;
+      --journey: #a78bfa;
+      --light: #f0d878;
+      --veil: #7a8aa8;
+      --ss: #8bb8c9;
+      --dg: #ef8f6b;
+      --ls: #9ad07a;
+      --maul: #c4b8a4;
+      --axe: #d4a574;
+      --bow: #9ad07a;
+      --gsword: #b8c5d6;
+      --radius: 10px;
+      --font-display: "Cinzel", "Palatino Linotype", Palatino, serif;
+      --font-body: "Cormorant Garamond", "Palatino Linotype", Palatino, serif;
+      --font-ui: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 17px;
+      line-height: 1.4;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .sticky {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background:
+        linear-gradient(180deg,
+          color-mix(in srgb, var(--accent) 8%, #0e1218) 0%,
+          rgba(14, 18, 24, 0.96) 100%);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+      padding: 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .sticky-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.85rem 1rem 1rem;
+    }
+
+    .sticky-row {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 0.45rem;
+      width: 100%;
+    }
+    @media (max-width: 420px) {
+      .sticky-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      min-width: 0;
+      padding: 0.45rem 0.55rem;
+      border-radius: 9px;
+      background: color-mix(in srgb, var(--bg3) 80%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+    }
+    .stat .label {
+      font-family: var(--font-display);
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stat .value {
+      font-family: var(--font-ui);
+      font-size: 1.25rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .stat .value.accent { color: var(--accent); }
+    .stat .value.good { color: var(--good); }
+    .stat .value.warn { color: var(--warn); }
+    .stat.to-hit {
+      border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg3));
+    }
+    .stat.attacks {
+      border-color: color-mix(in srgb, var(--good) 40%, var(--border));
+      background: color-mix(in srgb, var(--good) 12%, var(--bg3));
+    }
+    .stat.avg {
+      border-color: color-mix(in srgb, var(--warn) 40%, var(--border));
+      background: color-mix(in srgb, var(--warn) 12%, var(--bg3));
+    }
+
+    .title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .title-bar .identity {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      min-width: 0;
+    }
+    .title-bar .eyebrow {
+      font-family: var(--font-display);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--accent) 70%, var(--muted));
+    }
+    .title-bar h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      line-height: 1.15;
+    }
+    .title-bar .subtitle {
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .title-bar a {
+      flex-shrink: 0;
+      font-family: var(--font-ui);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 650;
+      text-decoration: none;
+      padding: 0.35rem 0.6rem;
+      border-radius: 7px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+    .title-bar a:hover {
+      background: color-mix(in srgb, var(--accent) 20%, transparent);
+      border-color: var(--accent);
+    }
+
+    main {
+      padding: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    section.panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    section.panel h2 {
+      margin: 0 0 0.75rem;
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    section.panel .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin: 0 0 0.75rem;
+    }
+    section.panel .panel-head h2 {
+      margin: 0;
+    }
+    section.panel .panel-head .spell-clear {
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.32rem 0.7rem;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--muted);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    section.panel .panel-head .spell-clear:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: color-mix(in srgb, var(--danger) 12%, var(--bg3));
+    }
+
+    .preset-row, .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    button, .toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.55rem 0.85rem;
+      font-family: var(--font-ui);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      user-select: none;
+    }
+    button:hover, .toggle:hover { border-color: var(--accent); }
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0b1220;
+    }
+    button.ghost { background: transparent; color: var(--muted); }
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .spell-row:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .toggle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.5rem;
+      overflow: visible;
+    }
+    .toggle.active {
+      background: color-mix(in srgb, var(--accent) 28%, var(--bg3));
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+    .toggle.active.fire { --accent: var(--fire); }
+    .toggle.active.war { --accent: var(--war); }
+    .toggle.active.gm { --accent: var(--good); }
+    .toggle.active.cloud { --accent: var(--cloud); }
+    .toggle.active.stone { --accent: var(--stone); }
+    .toggle.active.journey { --accent: var(--journey); }
+    .toggle.active.light { --accent: var(--light); }
+    .toggle.active.veil { --accent: var(--veil); }
+    .toggle.rune-card.fire { --accent: var(--fire); }
+    .toggle.rune-card.war { --accent: var(--war); }
+    .toggle.rune-card.cloud { --accent: var(--cloud); }
+    .toggle.rune-card.stone { --accent: var(--stone); }
+    .toggle.rune-card.journey { --accent: var(--journey); }
+    .toggle.rune-card.light { --accent: var(--light); }
+    .toggle.rune-card.veil { --accent: var(--veil); }
+    .toggle.rune-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.15rem;
+      min-height: 6.2rem;
+      padding: 0.65rem 0.75rem 0.7rem;
+      text-align: left;
+      position: relative;
+      overflow: visible;
+      z-index: 1;
+    }
+    .toggle.rune-card:hover,
+    .toggle.rune-card:focus-within {
+      z-index: 30;
+    }
+    .rune-tip {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: min(24rem, calc(100vw - 1.5rem));
+      max-width: calc(100vw - 1.5rem);
+      max-height: min(70vh, 32rem);
+      padding: 0.7rem 0.8rem;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--accent, var(--war)) 45%, var(--border));
+      background: color-mix(in srgb, var(--bg) 94%, #000);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+      text-align: left;
+      pointer-events: none;
+      z-index: 200;
+      box-sizing: border-box;
+    }
+    .toggle.rune-card:hover .rune-tip,
+    .toggle.rune-card:focus-within .rune-tip,
+    .spell-row:hover .rune-tip,
+    .spell-row:focus-within .rune-tip,
+    .toggle.weapon-card:hover .rune-tip,
+    .toggle.weapon-card:focus-within .rune-tip {
+      display: block;
+    }
+    .rune-tip .tip-h {
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent, var(--war));
+      margin: 0 0 0.35rem;
+    }
+    .rune-tip p + .tip-h {
+      margin-top: 0.9rem;
+    }
+    .rune-tip p {
+      margin: 0;
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      line-height: 1.4;
+      color: #d5deea;
+      font-style: normal;
+    }
+    .rune-tip .tip-meta {
+      color: var(--muted);
+      font-size: 0.72rem;
+      margin: 0.15rem 0 0.25rem;
+    }
+    .rune-glyph {
+      width: 1.85rem;
+      height: 2.35rem;
+      margin-bottom: 0.2rem;
+      color: color-mix(in srgb, var(--muted) 85%, #fff);
+      flex-shrink: 0;
+    }
+    .rune-glyph svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+    .toggle.active .rune-glyph {
+      color: var(--accent);
+      filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 55%, transparent));
+    }
+    .toggle.rune-card .rune-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+    }
+    .toggle.rune-card .sub {
+      align-self: stretch;
+      text-align: left;
+    }
+    .toggle.locked {
+      outline: 2px dashed var(--warn);
+      outline-offset: -2px;
+    }
+    .toggle .sub {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+    .toggle.active .sub { color: color-mix(in srgb, #fff 70%, var(--muted)); }
+
+    .group-label {
+      grid-column: 1 / -1;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .calc-grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+    @media (min-width: 720px) {
+      .calc-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .formula {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #c8d4e6;
+    }
+
+    .seq-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .seq-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.45rem 0.6rem;
+      background: var(--bg);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .seq-list .n {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 1.5rem;
+    }
+    .seq-list .dmg {
+      color: var(--good);
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .note {
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-style: italic;
+      margin: 0.5rem 0 0;
+    }
+    .note.warn { color: var(--warn); }
+
+    .resource-list {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .resource-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin: 0 0 0.65rem;
+    }
+    .resource-filters .res-filter {
+      appearance: none;
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.32rem 0.55rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .resource-filters .res-filter:hover {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    }
+    .resource-filters .res-filter.active {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+      background: color-mix(in srgb, var(--accent) 16%, var(--bg3));
+    }
+    .resource-filters .res-filter.active.src-class {
+      border-color: color-mix(in srgb, var(--journey) 55%, var(--border));
+      background: color-mix(in srgb, var(--journey) 16%, var(--bg3));
+    }
+    .resource-filters .res-filter.active.src-rune {
+      border-color: color-mix(in srgb, var(--cloud) 55%, var(--border));
+      background: color-mix(in srgb, var(--cloud) 16%, var(--bg3));
+    }
+    .resource-filters .res-filter.active.src-feat {
+      border-color: color-mix(in srgb, var(--good) 55%, var(--border));
+      background: color-mix(in srgb, var(--good) 16%, var(--bg3));
+    }
+    .resource-filters .res-filter.active.src-item {
+      border-color: color-mix(in srgb, var(--fire) 55%, var(--border));
+      background: color-mix(in srgb, var(--fire) 16%, var(--bg3));
+    }
+    .resource-filters .res-filter.active.src-other {
+      border-color: var(--border);
+      background: var(--bg3);
+    }
+    .resource-empty {
+      margin: 0.5rem 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+    .rune-count {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 0.5rem;
+    }
+    .rune-count.full { color: var(--warn); }
+    .spell-meta {
+      margin: -0.35rem 0 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .spell-meta strong { color: var(--accent); }
+    .spell-slots-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem 1.25rem;
+      margin-bottom: 0.85rem;
+    }
+    .spell-slot-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .spell-slot-group .lvl {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--muted) 70%, #fff);
+    }
+    .spell-slot-pips { display: flex; gap: 0.4rem; }
+    .spell-slot-pips .slot {
+      pointer-events: none;
+      cursor: default;
+      width: 1.85rem;
+      height: 1.85rem;
+      border-radius: 6px;
+      border-width: 2px;
+      opacity: 1;
+      box-sizing: border-box;
+    }
+    .spell-slot-group.lvl-1 { --slot-fill: #5ec8c5; }
+    .spell-slot-group.lvl-2 { --slot-fill: #e0a84a; }
+    .spell-slot-group.lvl-3 { --slot-fill: #b08cff; }
+    .spell-slot-pips .slot.free {
+      background: color-mix(in srgb, var(--slot-fill) 16%, var(--bg3));
+      border-color: color-mix(in srgb, var(--slot-fill) 70%, var(--border));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--slot-fill) 18%, transparent);
+    }
+    .spell-slot-pips .slot.prep {
+      opacity: 1;
+      background: color-mix(in srgb, var(--slot-fill) 82%, #fff);
+      border-color: color-mix(in srgb, var(--slot-fill) 92%, #fff);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--slot-fill) 45%, transparent),
+        0 0 10px color-mix(in srgb, var(--slot-fill) 28%, transparent);
+    }
+    .spell-slot-pips .slot.prep.cast {
+      background: color-mix(in srgb, var(--slot-fill) 35%, var(--bg));
+      opacity: 0.85;
+      background-image: linear-gradient(
+        135deg,
+        transparent 46%,
+        color-mix(in srgb, var(--danger) 80%, #000) 46%,
+        color-mix(in srgb, var(--danger) 80%, #000) 54%,
+        transparent 54%
+      );
+    }
+    .spell-slot-pips .slot.cast:not(.prep) {
+      opacity: 0.7;
+      background-image: linear-gradient(
+        135deg,
+        transparent 46%,
+        color-mix(in srgb, var(--danger) 70%, #000) 46%,
+        color-mix(in srgb, var(--danger) 70%, #000) 54%,
+        transparent 54%
+      );
+    }
+    .spell-slot-group .lvl .used {
+      color: color-mix(in srgb, var(--slot-fill, var(--accent)) 80%, #fff);
+    }
+    .spell-known {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.45rem;
+    }
+    .spell-chip {
+      padding: 0.45rem 0.55rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      font-size: 0.82rem;
+    }
+    .spell-chip .k {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .kill-row {
+      display: flex;
+      gap: 0.35rem;
+      margin-top: 0.45rem;
+    }
+    .kill-row button {
+      flex: 1;
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.32rem 0.4rem;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .kill-row button.active {
+      background: color-mix(in srgb, var(--danger) 22%, var(--bg));
+      border-color: var(--danger);
+      color: color-mix(in srgb, var(--danger) 80%, #fff);
+    }
+    .graze-note {
+      margin-top: 0.4rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--stone) 18%, var(--bg));
+      border: 1px dashed color-mix(in srgb, var(--stone) 55%, var(--border));
+      color: color-mix(in srgb, var(--stone) 85%, var(--text));
+      font-size: 0.75rem;
+      font-weight: 650;
+    }
+    .mastery-chip.topple { background: color-mix(in srgb, var(--maul) 35%, var(--bg)); color: #efe6d4; }
+    .mastery-chip.graze { background: color-mix(in srgb, var(--gsword) 40%, var(--bg)); color: #dce6f0; }
+    .resource-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+    }
+    .resource-table th,
+    .resource-table td {
+      padding: 0.5rem 0.55rem;
+      text-align: left;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border);
+    }
+    .resource-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--bg2);
+      font-family: var(--font-display);
+      font-size: 0.68rem;
+      font-weight: 650;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+    }
+    .resource-table thead th:hover {
+      color: var(--text);
+    }
+    .resource-table thead th.sort-active {
+      color: color-mix(in srgb, var(--accent) 80%, var(--text));
+    }
+    .resource-table thead th .sort-ind {
+      margin-left: 0.25rem;
+      opacity: 0.85;
+    }
+    .resource-table tbody tr:hover td {
+      background: color-mix(in srgb, var(--accent) 6%, var(--bg));
+    }
+    .resource-table tr.inactive-rune {
+      opacity: 0.4;
+    }
+    .resource-table tr.inactive-rune .slots {
+      pointer-events: none;
+    }
+    .resource-table .col-name {
+      font-family: var(--font-display);
+      font-weight: 650;
+      font-size: 0.9rem;
+      letter-spacing: 0.03em;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .resource-table .col-name .name-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .resource-table .col-name .res-glyph {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.15rem;
+      height: 1.4rem;
+      flex-shrink: 0;
+      color: var(--muted);
+    }
+    .resource-table .col-name .res-glyph.is-empty {
+      visibility: hidden;
+    }
+    .resource-table .col-name .res-glyph svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .resource-table .col-name .name-text {
+      min-width: 0;
+    }
+    .resource-table tr.rune-fire:not(.inactive-rune) .res-glyph { color: var(--fire); }
+    .resource-table tr.rune-stone:not(.inactive-rune) .res-glyph { color: var(--stone); }
+    .resource-table tr.rune-war:not(.inactive-rune) .res-glyph { color: var(--war); }
+    .resource-table tr.rune-journey:not(.inactive-rune) .res-glyph { color: var(--journey); }
+    .resource-table tr.rune-cloud:not(.inactive-rune) .res-glyph { color: var(--cloud); }
+    .resource-table tr.rune-light:not(.inactive-rune) .res-glyph { color: var(--light); }
+    .resource-table tr.rune-lostVeil:not(.inactive-rune) .res-glyph { color: var(--veil); }
+    .resource-table tr.rune-runicShield .res-glyph { color: var(--journey); }
+    .resource-table .col-effect {
+      color: color-mix(in srgb, var(--text) 75%, var(--muted));
+      line-height: 1.35;
+      min-width: 12rem;
+    }
+    .resource-table .col-effect .inactive-note {
+      color: var(--muted);
+      font-style: italic;
+    }
+    .resource-table .col-uses {
+      white-space: nowrap;
+    }
+    .resource-table .col-uses .slots {
+      justify-content: flex-start;
+    }
+    .res-badge {
+      display: inline-block;
+      padding: 0.12rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.62rem;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1.2;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .res-badge.rest-lr {
+      color: color-mix(in srgb, var(--war) 85%, #fff);
+      border-color: color-mix(in srgb, var(--war) 50%, var(--border));
+      background: color-mix(in srgb, var(--war) 18%, var(--bg3));
+    }
+    .res-badge.rest-sr {
+      color: color-mix(in srgb, var(--accent) 85%, #fff);
+      border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+      background: color-mix(in srgb, var(--accent) 16%, var(--bg3));
+    }
+    .res-badge.rest-dawn {
+      color: color-mix(in srgb, var(--veil) 90%, #fff);
+      border-color: color-mix(in srgb, var(--veil) 50%, var(--border));
+      background: color-mix(in srgb, var(--veil) 18%, var(--bg3));
+    }
+    .res-badge.rest-turn,
+    .res-badge.rest-round {
+      color: color-mix(in srgb, var(--warn) 85%, #fff);
+      border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+      background: color-mix(in srgb, var(--warn) 16%, var(--bg3));
+    }
+    .res-badge.src-class {
+      color: color-mix(in srgb, var(--journey) 85%, #fff);
+      border-color: color-mix(in srgb, var(--journey) 45%, var(--border));
+      background: color-mix(in srgb, var(--journey) 14%, var(--bg3));
+    }
+    .res-badge.src-rune {
+      color: color-mix(in srgb, var(--cloud) 90%, #fff);
+      border-color: color-mix(in srgb, var(--cloud) 50%, var(--border));
+      background: color-mix(in srgb, var(--cloud) 16%, var(--bg3));
+    }
+    .res-badge.src-feat {
+      color: color-mix(in srgb, var(--good) 85%, #fff);
+      border-color: color-mix(in srgb, var(--good) 45%, var(--border));
+      background: color-mix(in srgb, var(--good) 14%, var(--bg3));
+    }
+    .res-badge.src-item {
+      color: color-mix(in srgb, var(--fire) 85%, #fff);
+      border-color: color-mix(in srgb, var(--fire) 45%, var(--border));
+      background: color-mix(in srgb, var(--fire) 14%, var(--bg3));
+    }
+    .res-badge.src-other {
+      color: var(--muted);
+      border-color: var(--border);
+      background: var(--bg3);
+    }
+    .slots {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+    .slot {
+      width: 1.55rem;
+      height: 1.55rem;
+      border-radius: 5px;
+      border: 2px solid color-mix(in srgb, var(--border) 85%, transparent);
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      opacity: 0.55;
+    }
+    /* Täytetty = jäljellä (sama logiikka kuin combat card-pips) */
+    .slot.avail {
+      opacity: 1;
+      background: color-mix(in srgb, var(--good) 70%, #fff);
+      border-color: color-mix(in srgb, var(--good) 80%, #fff);
+    }
+    .slot.per-turn.avail {
+      background: color-mix(in srgb, var(--warn) 75%, #fff);
+      border-color: color-mix(in srgb, var(--warn) 85%, #fff);
+    }
+    .resource-table tr.rest-lr .slot.avail {
+      background: color-mix(in srgb, var(--war) 70%, #fff);
+      border-color: color-mix(in srgb, var(--war) 80%, #fff);
+    }
+    .resource-table tr.rest-sr .slot.avail {
+      background: color-mix(in srgb, var(--accent) 70%, #fff);
+      border-color: color-mix(in srgb, var(--accent) 80%, #fff);
+    }
+    .resource-table tr.rest-dawn .slot.avail {
+      background: color-mix(in srgb, var(--veil) 70%, #fff);
+      border-color: color-mix(in srgb, var(--veil) 80%, #fff);
+    }
+
+    .weapon-select {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .weapon-select .toggle { min-width: 7.5rem; }
+
+    .loadout-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-bottom: 0.75rem;
+    }
+    .loadout-row {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 0.45rem;
+      align-items: center;
+      min-width: 0;
+    }
+    .loadout-row .row-label {
+      min-width: 4.5rem;
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .loadout-row .row-opts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+    @media (min-width: 860px) {
+      .loadout-grid {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0.85rem;
+      }
+      .loadout-row {
+        flex: 1 1 0;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+      }
+      .loadout-row .row-label {
+        min-width: 0;
+      }
+      .loadout-row .row-opts {
+        flex: 0 1 auto;
+        width: 100%;
+      }
+    }
+    .toggle.weapon-card {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      min-width: 5.4rem;
+      min-height: 4.4rem;
+      padding: 0.45rem 0.55rem 0.5rem;
+      text-align: center;
+      position: relative;
+      opacity: 0.42;
+      filter: grayscale(0.55);
+      border-color: var(--border);
+      background: var(--bg3);
+      box-shadow: none;
+    }
+    .toggle.rune-card.spell-card {
+      min-height: 8.6rem;
+      height: 100%;
+      padding: 0;
+      gap: 0;
+      overflow: hidden;
+      justify-content: flex-start;
+      border-top-width: 3px;
+    }
+    .toggle.rune-card.spell-card.lvl-0 { --accent: #9aa3b2; }
+    .toggle.rune-card.spell-card.lvl-1 { --accent: #5ec8c5; }
+    .toggle.rune-card.spell-card.lvl-2 { --accent: #e0a84a; }
+    .toggle.rune-card.spell-card.lvl-3 { --accent: #b08cff; }
+    .toggle.rune-card.spell-card:hover,
+    .toggle.rune-card.spell-card:focus-within {
+      overflow: visible;
+      z-index: 40;
+    }
+    .toggle.rune-card.spell-card:not(.active) {
+      opacity: 0.78;
+      border-style: dashed;
+      border-top-style: solid;
+    }
+    .toggle.rune-card.spell-card .spell-body {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.12rem;
+      flex: 1 1 auto;
+      width: 100%;
+      min-height: 0;
+      padding: 0.55rem 0.7rem 0.45rem;
+      box-sizing: border-box;
+    }
+    .toggle.rune-card.spell-card .spell-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.4rem;
+      width: 100%;
+    }
+    .toggle.rune-card.spell-card .spell-head .rune-name {
+      flex: 1;
+      min-width: 0;
+      padding-right: 0;
+    }
+    .toggle.rune-card.spell-card .spell-time-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      width: 100%;
+      margin-top: auto;
+      padding: 0.28rem 0.7rem 0.7rem;
+      box-sizing: border-box;
+    }
+    .toggle.rune-card.spell-card .spell-lvl-bar {
+      display: block;
+      width: 100%;
+      margin-top: 0;
+      padding: 0.32rem 0.55rem;
+      box-sizing: border-box;
+      text-align: center;
+      font-family: var(--font-ui);
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--accent) 92%, #fff);
+      background: color-mix(in srgb, var(--accent) 30%, var(--bg));
+      border-top: 1px solid color-mix(in srgb, var(--accent) 48%, var(--border));
+    }
+    .toggle.rune-card.spell-card .spell-status {
+      display: inline-block;
+      margin-top: 0.15rem;
+      font-family: var(--font-ui);
+      font-size: 0.68rem;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .toggle.rune-card.spell-card.active .spell-status {
+      color: color-mix(in srgb, var(--accent) 70%, #fff);
+    }
+    .toggle.rune-card.spell-card .spell-unprep,
+    .spell-row .spell-row-action {
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      width: 1.55rem;
+      height: 1.55rem;
+      border-radius: 7px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+      background: color-mix(in srgb, var(--bg) 80%, var(--bg3));
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0;
+      font-family: var(--font-ui);
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .toggle.rune-card.spell-card .spell-unprep svg,
+    .spell-row .spell-row-action svg {
+      width: 0.72rem;
+      height: 0.72rem;
+      display: block;
+      pointer-events: none;
+    }
+    .toggle.rune-card.spell-card .spell-unprep:hover,
+    .spell-row .spell-row-action:hover:not(:disabled) {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: color-mix(in srgb, var(--danger) 14%, var(--bg));
+    }
+    .spell-row .spell-row-action.add:hover:not(:disabled) {
+      border-color: var(--accent);
+      color: var(--text);
+      background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+    }
+    .spell-help {
+      margin: 0 0 0.65rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .spell-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem 0.85rem;
+      margin: 0 0 0.65rem;
+    }
+    .spell-filter-groups {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem 0.85rem;
+    }
+    .time-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 4.4rem;
+      padding: 0.14rem 0.45rem;
+      border-radius: 999px;
+      font-family: var(--font-ui);
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1.2;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .time-badge.time-action {
+      color: #d8ecff;
+      background: color-mix(in srgb, #4d8fd6 32%, var(--bg3));
+      border-color: color-mix(in srgb, #4d8fd6 55%, var(--border));
+    }
+    .time-badge.time-bonus {
+      color: #fff4d6;
+      background: color-mix(in srgb, #e0a84a 34%, var(--bg3));
+      border-color: color-mix(in srgb, #e0a84a 60%, var(--border));
+    }
+    .time-badge.time-reaction {
+      color: #f0e4ff;
+      background: color-mix(in srgb, #b08cff 34%, var(--bg3));
+      border-color: color-mix(in srgb, #b08cff 60%, var(--border));
+    }
+    .spell-view-toggle {
+      display: inline-flex;
+      gap: 0.25rem;
+    }
+    .spell-view-toggle button {
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.32rem 0.65rem;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .spell-view-toggle button.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 18%, var(--bg3));
+      color: var(--text);
+    }
+    .spell-level-block {
+      margin: 0 0 0.85rem;
+      padding: 0.55rem 0.65rem 0.45rem;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+      background: color-mix(in srgb, var(--accent) 7%, var(--bg2));
+    }
+    .spell-level-block.lvl-0 { --accent: #9aa3b2; }
+    .spell-level-block.lvl-1 { --accent: #5ec8c5; }
+    .spell-level-block.lvl-2 { --accent: #e0a84a; }
+    .spell-level-block.lvl-3 { --accent: #b08cff; }
+    .spell-level-block h3 {
+      margin: 0 0 0.45rem;
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--accent) 80%, #fff);
+    }
+    .spell-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+    }
+    .spell-row,
+    .spell-row-head {
+      display: grid;
+      grid-template-columns: minmax(13.5rem, 0.72fr) 7.6rem 7.4rem minmax(0, 1.35fr) 2.2rem;
+      align-items: center;
+      column-gap: 0.85rem;
+      width: 100%;
+      text-align: left;
+      padding: 0.42rem 0.6rem;
+      box-sizing: border-box;
+    }
+    .spell-row-head {
+      padding: 0.15rem 0.6rem 0.28rem;
+      color: color-mix(in srgb, var(--accent) 55%, var(--muted));
+      font-family: var(--font-ui);
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .spell-row {
+      position: relative;
+      border-radius: 8px;
+      border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+      background: color-mix(in srgb, var(--bg3) 85%, transparent);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .spell-row.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 16%, var(--bg3));
+    }
+    .spell-row:not(.active) {
+      border-style: dashed;
+    }
+    .spell-row .row-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.92rem;
+      letter-spacing: 0.03em;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .spell-row .row-status {
+      font-family: var(--font-ui);
+      font-size: 0.68rem;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .spell-row.active .row-status {
+      color: color-mix(in srgb, var(--accent) 75%, #fff);
+    }
+    .spell-row .row-when {
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .spell-row .row-effect {
+      font-size: 0.8rem;
+      color: var(--muted);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .spell-row .spell-tip-host {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      overflow: visible;
+      pointer-events: none;
+    }
+    .spell-row.always {
+      cursor: default;
+    }
+    .spell-row:not(.active):not(.always) {
+      cursor: pointer;
+    }
+    @media (max-width: 720px) {
+      .spell-row-head { display: none; }
+      .spell-row {
+        grid-template-columns: minmax(0, 1fr) 1.7rem;
+        grid-template-areas:
+          "name unprep"
+          "status unprep"
+          "when when"
+          "effect effect";
+      }
+      .spell-row .row-name { grid-area: name; }
+      .spell-row .row-status { grid-area: status; }
+      .spell-row .row-when { grid-area: when; }
+      .spell-row .row-effect { grid-area: effect; white-space: normal; }
+      .spell-row .spell-row-action { grid-area: unprep; }
+    }
+    .toggle-grid.spell-grid {
+      align-items: stretch;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    .toggle.rune-card.spell-card .sub {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .toggle.weapon-card.wpn-handaxe { --wpn: var(--axe); }
+    .toggle.weapon-card.wpn-longbow { --wpn: var(--bow); }
+    .toggle.weapon-card.wpn-greatsword { --wpn: var(--gsword); }
+    .toggle.weapon-card.wpn-empty { --wpn: var(--muted); }
+    .toggle.weapon-card.wpn-grip1h { --wpn: #c5d0e0; }
+    .toggle.weapon-card.wpn-grip2h { --wpn: var(--ls); }
+    .toggle.weapon-card .weapon-glyph {
+      color: var(--muted);
+    }
+    .toggle.weapon-card .wpn-label {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      line-height: 1.15;
+      color: var(--muted);
+    }
+    .toggle.weapon-card:hover,
+    .toggle.weapon-card:focus-within {
+      z-index: 40;
+      overflow: visible;
+      filter: none;
+    }
+    .toggle.weapon-card:hover:not(:disabled):not(.active) {
+      opacity: 0.7;
+      border-color: color-mix(in srgb, var(--wpn, var(--accent)) 45%, var(--border));
+    }
+    .toggle.weapon-card.active {
+      opacity: 1;
+      filter: none;
+      --accent: var(--wpn, var(--accent));
+      background: color-mix(in srgb, var(--wpn, var(--accent)) 32%, var(--bg3));
+      border-color: var(--wpn, var(--accent));
+      border-width: 2px;
+      box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--wpn, var(--accent)) 55%, transparent),
+        0 0 14px color-mix(in srgb, var(--wpn, var(--accent)) 35%, transparent);
+    }
+    .toggle.weapon-card.active .weapon-glyph {
+      color: var(--wpn, var(--accent));
+      filter: drop-shadow(0 0 5px color-mix(in srgb, var(--wpn, var(--accent)) 55%, transparent));
+    }
+    .toggle.weapon-card.active .wpn-label {
+      color: #fff;
+      font-weight: 750;
+    }
+    .toggle.weapon-card.active::after {
+      content: "✓";
+      position: absolute;
+      top: 0.28rem;
+      right: 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--wpn, var(--accent));
+      line-height: 1;
+    }
+    .weapon-glyph {
+      width: 1.7rem;
+      height: 2.15rem;
+      flex-shrink: 0;
+    }
+    .weapon-glyph svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+    .toggle.weapon-card.empty.active::after {
+      content: "✓";
+    }
+    .toggle.weapon-card:disabled {
+      opacity: 0.22;
+      filter: grayscale(0.8);
+    }
+    .combat-panel {
+      border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+    }
+    .combat-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .combat-head h2 { margin: 0; }
+    .combat-head-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .btn-turn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.95rem;
+      border-radius: 999px;
+      font-family: var(--font-ui);
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      transition:
+        background 0.15s,
+        border-color 0.15s,
+        color 0.15s,
+        box-shadow 0.15s,
+        transform 0.12s;
+    }
+    .btn-turn .btn-ico {
+      width: 1.05rem;
+      height: 1.05rem;
+      flex-shrink: 0;
+    }
+    .btn-turn:active {
+      transform: translateY(1px);
+    }
+    .btn-new-turn {
+      background: linear-gradient(165deg,
+        color-mix(in srgb, var(--accent) 92%, #fff) 0%,
+        var(--accent) 45%,
+        color-mix(in srgb, var(--accent) 75%, #1a4a8a) 100%);
+      border: 1px solid color-mix(in srgb, var(--accent) 60%, #1a4a8a);
+      color: #071018;
+      box-shadow:
+        0 1px 0 color-mix(in srgb, #fff 25%, transparent) inset,
+        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent);
+    }
+    .btn-new-turn:hover {
+      border-color: color-mix(in srgb, var(--accent) 40%, #fff);
+      box-shadow:
+        0 1px 0 color-mix(in srgb, #fff 30%, transparent) inset,
+        0 8px 20px color-mix(in srgb, var(--accent) 40%, transparent);
+      filter: brightness(1.06);
+    }
+    .btn-clear-turn {
+      background: color-mix(in srgb, var(--bg3) 70%, transparent);
+      border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border));
+      color: color-mix(in srgb, var(--danger) 55%, var(--muted));
+      box-shadow: none;
+    }
+    .btn-clear-turn:hover {
+      background: color-mix(in srgb, var(--danger) 12%, var(--bg3));
+      border-color: color-mix(in srgb, var(--danger) 65%, var(--border));
+      color: color-mix(in srgb, var(--danger) 85%, var(--text));
+    }
+    .btn-short-rest {
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg3));
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+      color: color-mix(in srgb, var(--accent) 85%, var(--text));
+      box-shadow: none;
+    }
+    .btn-short-rest:hover {
+      background: color-mix(in srgb, var(--accent) 22%, var(--bg3));
+      border-color: var(--accent);
+    }
+    .btn-long-rest {
+      background: linear-gradient(165deg,
+        color-mix(in srgb, var(--war) 88%, #fff) 0%,
+        var(--war) 50%,
+        color-mix(in srgb, var(--war) 70%, #3a2a08) 100%);
+      border: 1px solid color-mix(in srgb, var(--war) 55%, #3a2a08);
+      color: #141008;
+      box-shadow:
+        0 1px 0 color-mix(in srgb, #fff 22%, transparent) inset,
+        0 6px 16px color-mix(in srgb, var(--war) 25%, transparent);
+    }
+    .btn-long-rest:hover {
+      filter: brightness(1.06);
+      border-color: color-mix(in srgb, var(--war) 40%, #fff);
+    }
+    .btn-reset-buffs {
+      background: color-mix(in srgb, var(--bg3) 70%, transparent);
+      border: 1px solid color-mix(in srgb, var(--muted) 40%, var(--border));
+      color: var(--muted);
+      box-shadow: none;
+    }
+    .btn-reset-buffs:hover {
+      background: color-mix(in srgb, var(--warn) 12%, var(--bg3));
+      border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+      color: color-mix(in srgb, var(--warn) 80%, var(--text));
+    }
+    .combat-surge {
+      appearance: none;
+      width: 100%;
+      text-align: left;
+      margin: 0;
+      padding: 0.7rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg3));
+      color: var(--text);
+      cursor: pointer;
+    }
+    .combat-top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem;
+      margin: 0 0 0.75rem;
+    }
+    @media (max-width: 720px) {
+      .combat-top-row { grid-template-columns: 1fr; }
+    }
+    .combat-surge.savage {
+      border-color: color-mix(in srgb, var(--war) 55%, var(--border));
+      background: color-mix(in srgb, var(--war) 14%, var(--bg3));
+    }
+    .combat-surge.savage:not(.done) .card-title {
+      color: color-mix(in srgb, var(--war) 70%, var(--text));
+    }
+    .combat-surge .card-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.02rem;
+      letter-spacing: 0.04em;
+    }
+    .combat-surge .card-sub {
+      display: block;
+      margin-top: 0.2rem;
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .combat-surge.done {
+      background: color-mix(in srgb, var(--good) 18%, var(--bg));
+      border-color: var(--good);
+    }
+    .combat-surge.done .card-title::after {
+      content: " ✓";
+      color: var(--good);
+    }
+    .combat-surge.locked {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .combat-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.75rem;
+      align-items: start;
+      width: 100%;
+    }
+    .combat-section {
+      margin-top: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem;
+      min-width: 0;
+    }
+    .combat-section.col-action {
+      --col-tone: var(--accent);
+      border-color: color-mix(in srgb, var(--col-tone) 40%, var(--border));
+      border-top: 3px solid var(--col-tone);
+    }
+    .combat-section.col-bonus {
+      --col-tone: var(--warn);
+      border-color: color-mix(in srgb, var(--col-tone) 40%, var(--border));
+      border-top: 3px solid var(--col-tone);
+    }
+    .combat-section.col-reaction {
+      --col-tone: var(--journey);
+      border-color: color-mix(in srgb, var(--col-tone) 40%, var(--border));
+      border-top: 3px solid var(--col-tone);
+    }
+    .action-mode-row {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.55rem;
+    }
+    .action-mode-row button {
+      flex: 1 1 8rem;
+      width: auto;
+      text-align: left;
+      padding: 0.45rem 0.55rem;
+      font-size: 0.8rem;
+      font-weight: 650;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .action-mode-row button.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 22%, var(--bg3));
+    }
+    .action-mode-row button .mode-sub {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+    .action-mode-row button.active .mode-sub {
+      color: color-mix(in srgb, #fff 65%, var(--muted));
+    }
+    .action-info-card {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.7rem;
+      background: var(--bg3);
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .action-info-card strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: var(--accent);
+    }
+    .combat-section h3 {
+      margin: 0 0 0.5rem;
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: color-mix(in srgb, var(--col-tone, var(--muted)) 70%, var(--muted));
+      font-weight: 600;
+    }
+    .card-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .combat-card {
+      appearance: none;
+      text-align: left;
+      position: relative;
+      --card-tone: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--card-tone) 48%, var(--border));
+      background: color-mix(in srgb, var(--card-tone) 8%, var(--bg3));
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.7rem 0.75rem;
+      cursor: pointer;
+      min-height: 4.5rem;
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-tone) 10%, transparent);
+      transition: background 0.12s, border-color 0.12s, opacity 0.12s, box-shadow 0.12s;
+    }
+    .combat-card .card-pips {
+      position: absolute;
+      right: 0.55rem;
+      bottom: 0.45rem;
+      display: flex;
+      gap: 0.18rem;
+      pointer-events: none;
+    }
+    .combat-card .card-pip {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 2px;
+      border: 1px solid color-mix(in srgb, var(--card-tone) 35%, var(--border));
+      background: transparent;
+      box-sizing: border-box;
+      opacity: 0.45;
+    }
+    /* Täytetty = jäljellä (sama kuin tracker .slot.avail) */
+    .combat-card .card-pip.on {
+      opacity: 1;
+      background: color-mix(in srgb, var(--card-tone) 75%, #fff);
+      border-color: color-mix(in srgb, var(--card-tone) 85%, #fff);
+    }
+    .combat-card.has-pips .card-sub {
+      padding-right: 2.4rem;
+      padding-bottom: 0.35rem;
+    }
+    .combat-card:hover:not(:disabled):not(.done):not(.locked):not(.hit):not(.miss):not(.has-adv) {
+      border-color: var(--card-tone);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--card-tone) 28%, transparent);
+    }
+    .combat-card .card-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.02rem;
+      letter-spacing: 0.03em;
+      display: block;
+    }
+    .combat-card .card-sub {
+      display: block;
+      margin-top: 0.25rem;
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .combat-card.attack { --card-tone: var(--accent); }
+    .combat-card.bonus { --card-tone: var(--warn); }
+    .combat-card.reaction { --card-tone: var(--journey); }
+    .combat-card.is-rune {
+      position: relative;
+      padding-right: 2.5rem;
+      background:
+        linear-gradient(145deg,
+          color-mix(in srgb, var(--card-tone) 16%, var(--bg3)) 0%,
+          var(--bg3) 55%);
+      border-color: color-mix(in srgb, var(--card-tone) 48%, var(--border));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-tone) 18%, transparent);
+    }
+    .combat-card.is-rune .rune-mark {
+      position: absolute;
+      top: 0.45rem;
+      right: 0.45rem;
+      width: 1.55rem;
+      height: 1.55rem;
+      display: grid;
+      place-items: center;
+      transform: rotate(45deg);
+      background: color-mix(in srgb, var(--card-tone) 22%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--card-tone) 70%, #fff);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--card-tone) 35%, transparent);
+      pointer-events: none;
+      color: color-mix(in srgb, var(--card-tone) 80%, #fff);
+    }
+    .combat-card.is-rune .rune-mark .rune-mark-inner {
+      display: block;
+      width: 0.95rem;
+      height: 1.2rem;
+      transform: rotate(-45deg);
+      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--card-tone) 45%, transparent));
+    }
+    .combat-card.is-rune .rune-mark .rune-mark-inner svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+    .combat-card.is-rune .card-sub {
+      color: color-mix(in srgb, var(--card-tone) 55%, var(--muted));
+    }
+    /* Category-monochrome chips / TM inside Action cards */
+    .combat-card.attack .mastery-chip:not(.adv) {
+      background: color-mix(in srgb, var(--accent) 28%, var(--bg));
+      color: #cfe6ff;
+      border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+    .combat-card.attack .tm-btn.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 28%, var(--bg));
+      color: #cfe6ff;
+    }
+    .combat-card.attack .tm-effect {
+      color: var(--accent);
+    }
+    .combat-card.attack .card-reminders .nick-line,
+    .combat-card.attack .card-reminders .sap-line {
+      color: color-mix(in srgb, var(--accent) 72%, var(--muted));
+    }
+    .combat-card.attack .savage-hint {
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg));
+      border: 1px dashed color-mix(in srgb, var(--accent) 50%, var(--border));
+      color: color-mix(in srgb, var(--accent) 75%, var(--text));
+    }
+    .combat-card.attack .card-roll-row button.roll-dmg {
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg));
+      border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    }
+    .combat-card.attack .card-roll-row button.roll-dmg:hover {
+      border-color: var(--accent);
+    }
+    .combat-card.done {
+      background: color-mix(in srgb, var(--good) 18%, var(--bg));
+      border-color: var(--good);
+      opacity: 0.85;
+    }
+    .combat-card.done .card-title::after {
+      content: " ✓";
+      color: var(--good);
+    }
+    .combat-card.hit {
+      background: color-mix(in srgb, var(--good) 22%, var(--bg));
+      border-color: var(--good);
+    }
+    .combat-card.miss {
+      background: color-mix(in srgb, var(--danger) 16%, var(--bg));
+      border-color: var(--danger);
+      opacity: 0.8;
+    }
+    .combat-card.locked {
+      opacity: 0.35;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
+    }
+    .combat-card:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .combat-status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+    }
+    .mastery-chip {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.12rem 0.4rem;
+      border-radius: 4px;
+      margin: 0.35rem 0.25rem 0 0;
+      vertical-align: middle;
+    }
+    .mastery-chip.vex { background: color-mix(in srgb, var(--accent) 35%, var(--bg)); color: #cfe6ff; }
+    .mastery-chip.nick { background: color-mix(in srgb, var(--warn) 35%, var(--bg)); color: #ffe6a8; }
+    .mastery-chip.sap { background: color-mix(in srgb, var(--stone) 45%, var(--bg)); color: #e2e6ee; }
+    .mastery-chip.push {
+      background: color-mix(in srgb, var(--warn) 28%, var(--bg));
+      color: #ffe0a8;
+    }
+    .mastery-chip.slow {
+      background: color-mix(in srgb, var(--cloud) 30%, var(--bg));
+      color: #c5e4ff;
+    }
+    .mastery-chip.tm {
+      background: color-mix(in srgb, var(--warn) 22%, var(--bg));
+      color: #ffd27a;
+      border: 1px solid color-mix(in srgb, var(--warn) 50%, transparent);
+    }
+    .tm-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.3rem;
+      align-items: center;
+      margin-top: 0.45rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      overscroll-behavior-x: contain;
+    }
+    .tm-row .tm-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-right: 0.1rem;
+      flex-shrink: 0;
+    }
+    .tm-btn {
+      appearance: none;
+      flex-shrink: 0;
+      padding: 0.2rem 0.42rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      cursor: pointer;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .tm-btn.active {
+      border-color: var(--warn);
+      background: color-mix(in srgb, var(--warn) 28%, var(--bg));
+      color: #ffe6a8;
+    }
+    .tm-btn.native.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 25%, var(--bg));
+      color: #cfe6ff;
+    }
+    .tm-effect {
+      margin-top: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 650;
+      color: var(--warn);
+    }
+    .mastery-chip.adv {
+      background: var(--good);
+      color: #062016;
+      animation: pulseAdv 1.2s ease-in-out infinite;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+    }
+    @keyframes pulseAdv {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 60%, transparent); }
+      50% { transform: scale(1.04); box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 30%, transparent); }
+    }
+    .card-reminders {
+      margin-top: 0.4rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .card-reminders .adv-line { color: var(--good); }
+    .card-reminders .nick-line { color: var(--warn); }
+    .card-reminders .sap-line { color: var(--stone); }
+    .adv-banner {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0 0 0.5rem;
+      padding: 0.55rem 0.6rem;
+      border-radius: 8px;
+      background: var(--good);
+      color: #062016;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-align: center;
+      animation: pulseAdv 1.2s ease-in-out infinite;
+    }
+    .adv-banner .adv-sub {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      opacity: 0.85;
+      margin-top: 0.15rem;
+    }
+    .vex-granted {
+      display: block;
+      margin-top: 0.45rem;
+      padding: 0.4rem 0.5rem;
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--accent) 25%, var(--bg));
+      border: 1px solid var(--accent);
+      color: #cfe6ff;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .savage-hint {
+      display: block;
+      margin-top: 0.4rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--war) 18%, var(--bg));
+      border: 1px dashed color-mix(in srgb, var(--war) 55%, var(--border));
+      color: color-mix(in srgb, var(--war) 75%, var(--text));
+      font-size: 0.72rem;
+      font-weight: 650;
+    }
+    .combat-card.attack.has-adv {
+      border: 2px solid var(--good);
+      background: color-mix(in srgb, var(--good) 14%, var(--bg3));
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--good) 35%, transparent);
+    }
+    .adv-status-bar {
+      background: var(--good);
+      color: #062016;
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      margin-bottom: 0.75rem;
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-align: center;
+      animation: pulseAdv 1.2s ease-in-out infinite;
+    }
+    .adv-status-bar span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 0.2rem;
+      opacity: 0.9;
+    }
+    .hit-miss-row {
+      display: flex;
+      gap: 0.45rem;
+      margin-top: 0.65rem;
+    }
+    .hit-miss-row button {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      min-height: 2.6rem;
+      padding: 0.45rem;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s, transform 0.1s;
+    }
+    .hit-miss-row button svg {
+      width: 1.35rem;
+      height: 1.35rem;
+      display: block;
+    }
+    .hit-miss-row button.hm-hit {
+      border-color: color-mix(in srgb, var(--good) 45%, var(--border));
+      background: color-mix(in srgb, var(--good) 10%, var(--bg));
+      color: color-mix(in srgb, var(--good) 80%, #fff);
+    }
+    .hit-miss-row button.hm-miss {
+      border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
+      background: color-mix(in srgb, var(--danger) 10%, var(--bg));
+      color: color-mix(in srgb, var(--danger) 75%, #fff);
+    }
+    .hit-miss-row button.hm-hit:hover {
+      background: color-mix(in srgb, var(--good) 22%, var(--bg));
+      border-color: var(--good);
+      transform: translateY(-1px);
+    }
+    .hit-miss-row button.hm-miss:hover {
+      background: color-mix(in srgb, var(--danger) 22%, var(--bg));
+      border-color: var(--danger);
+      transform: translateY(-1px);
+    }
+    .hit-miss-row button.hm-hit.active {
+      background: var(--good);
+      border-color: var(--good);
+      color: #062016;
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--good) 35%, transparent);
+    }
+    .hit-miss-row button.hm-miss.active {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #1a0505;
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 35%, transparent);
+    }
+    .card-roll-row {
+      display: flex;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+    .card-roll-row button {
+      flex: 1;
+      padding: 0.38rem 0.35rem;
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      font-weight: 700;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+      color: var(--text);
+      cursor: pointer;
+    }
+    .card-roll-row button.roll-dmg {
+      background: color-mix(in srgb, var(--warn) 14%, var(--bg));
+      border-color: color-mix(in srgb, var(--warn) 40%, var(--border));
+    }
+    .card-roll-row button:hover {
+      border-color: var(--accent);
+    }
+    .card-roll-row button.roll-dmg:hover {
+      border-color: var(--warn);
+    }
+    .card-roll-row button.roll-dmg.crit-pending {
+      background: color-mix(in srgb, var(--war) 28%, var(--bg));
+      border-color: color-mix(in srgb, var(--war) 70%, var(--border));
+      color: color-mix(in srgb, var(--war) 75%, #fff);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--war) 30%, transparent);
+    }
+    .crit-pending-banner {
+      background: color-mix(in srgb, var(--war) 16%, var(--bg2));
+      border: 1px solid color-mix(in srgb, var(--war) 55%, var(--border));
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: color-mix(in srgb, var(--war) 75%, #fff);
+    }
+    .crit-pending-banner span {
+      display: block;
+      font-weight: 500;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+    .combat-round-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.55rem 0.85rem;
+      margin: 0 0 0.75rem;
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg3) 70%, var(--bg2));
+    }
+    .combat-round-bar .round-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .combat-round-bar .round-btn {
+      appearance: none;
+      width: 1.7rem;
+      height: 1.7rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+    }
+    .combat-round-bar .round-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .combat-round-bar .round-label {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      min-width: 5.5rem;
+    }
+    .combat-round-bar .round-label strong {
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+    }
+    .combat-round-bar .duration-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+    }
+    .combat-round-bar .duration-chip.on {
+      color: color-mix(in srgb, var(--accent) 85%, #fff);
+      border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg));
+    }
+    .combat-round-bar .duration-chip.gm.on {
+      color: color-mix(in srgb, var(--war) 85%, #fff);
+      border-color: color-mix(in srgb, var(--war) 50%, var(--border));
+      background: color-mix(in srgb, var(--war) 14%, var(--bg));
+    }
+    .haste-active-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg2));
+      border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border));
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .haste-active-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      min-width: 0;
+    }
+    .haste-active-text strong {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: color-mix(in srgb, var(--accent) 75%, var(--text));
+    }
+    .haste-active-text span {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .haste-dismiss {
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .haste-dismiss:hover {
+      border-color: var(--accent);
+    }
+    .combat-card.attack.is-haste {
+      border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+      background: color-mix(in srgb, var(--accent) 10%, var(--bg2));
+      box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 75%, transparent);
+    }
+    .combat-card.attack.is-dual {
+      border-color: color-mix(in srgb, var(--good) 45%, var(--border));
+      background: color-mix(in srgb, var(--good) 8%, var(--bg2));
+      box-shadow: inset 3px 0 0 color-mix(in srgb, var(--good) 65%, transparent);
+    }
+    .source-banner {
+      border-radius: 6px;
+      padding: 0.35rem 0.55rem;
+      margin-bottom: 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .source-banner.haste {
+      background: color-mix(in srgb, var(--accent) 22%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border));
+      color: color-mix(in srgb, var(--accent) 80%, #fff);
+    }
+    .source-banner.haste span {
+      display: block;
+      margin-top: 0.12rem;
+      font-weight: 500;
+      font-size: 0.7rem;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--muted);
+    }
+    .source-banner.dual {
+      background: color-mix(in srgb, var(--good) 18%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--good) 45%, var(--border));
+      color: color-mix(in srgb, var(--good) 75%, #fff);
+    }
+    .source-banner.dual span {
+      display: block;
+      margin-top: 0.12rem;
+      font-weight: 500;
+      font-size: 0.7rem;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--muted);
+    }
+    .source-banner.surge {
+      background: color-mix(in srgb, var(--warn) 16%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--border));
+      color: color-mix(in srgb, var(--warn) 80%, #fff);
+    }
+    .mastery-chip.haste {
+      background: color-mix(in srgb, var(--accent) 40%, var(--bg));
+      color: #cfe6ff;
+    }
+    .mastery-chip.dual {
+      background: color-mix(in srgb, var(--good) 35%, var(--bg));
+      color: #c8f0d8;
+    }
+    .mastery-chip.surge {
+      background: color-mix(in srgb, var(--warn) 35%, var(--bg));
+      color: #ffe6a8;
+    }
+    .mastery-banner {
+      background: color-mix(in srgb, var(--warn) 12%, var(--bg2));
+      border: 1px solid color-mix(in srgb, var(--warn) 40%, var(--border));
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mastery-banner strong { color: var(--warn); }
+    .mastery-banner .ok { color: var(--good); font-weight: 700; }
+    .mastery-banner ul {
+      margin: 0.35rem 0 0;
+      padding-left: 1.1rem;
+    }
+
+    .minmax {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .minmax .stat .value { font-size: 1.15rem; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      padding: 0.5rem 1rem 1.5rem;
+    }
+
+    /* ——— 3D Dice ——— */
+    #dice-box {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      pointer-events: none;
+      touch-action: none;
+      overflow: hidden;
+    }
+    /* Do NOT CSS-stretch the canvas — buffer size is set in JS 1:1 with display */
+    #dice-box canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      max-width: none !important;
+      max-height: none !important;
+      object-fit: unset !important;
+    }
+    .dice-dock {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      align-items: stretch;
+      width: min(11.5rem, calc(100vw - 2rem));
+      padding: 0.65rem;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--war) 40%, var(--border));
+      background: color-mix(in srgb, var(--bg2) 92%, transparent);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .dice-dock.collapsed {
+      width: auto;
+      padding: 0.4rem;
+      gap: 0;
+    }
+    .dice-dock.collapsed .dice-body {
+      display: none;
+    }
+    .dice-dock-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+    }
+    .dice-dock .dice-title {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--war);
+      font-weight: 700;
+      margin: 0;
+    }
+    .dice-dock #diceToggle {
+      padding: 0.2rem 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      min-width: 2rem;
+      flex-shrink: 0;
+    }
+    .dice-dock .dice-result {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      min-height: 1.5rem;
+      letter-spacing: 0.04em;
+    }
+    .dice-dock .dice-result.crit {
+      color: color-mix(in srgb, var(--war) 85%, #fff);
+      text-shadow: 0 0 12px color-mix(in srgb, var(--war) 45%, transparent);
+    }
+    .dice-dock .dice-result.fumble {
+      color: var(--danger);
+      text-shadow: 0 0 12px color-mix(in srgb, var(--danger) 40%, transparent);
+    }
+    .dice-flag {
+      display: none;
+      margin: 0.15rem 0 0.2rem;
+      padding: 0.28rem 0.45rem;
+      border-radius: 6px;
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .dice-flag.show { display: block; }
+    .dice-flag.crit {
+      background: color-mix(in srgb, var(--war) 22%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--war) 65%, var(--border));
+      color: color-mix(in srgb, var(--war) 80%, #fff);
+    }
+    .dice-flag.fumble {
+      background: color-mix(in srgb, var(--danger) 18%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--danger) 60%, var(--border));
+      color: var(--danger);
+    }
+    .dice-toast {
+      position: fixed;
+      left: 50%;
+      top: 14%;
+      transform: translateX(-50%);
+      z-index: 10050;
+      pointer-events: none;
+      min-width: 9rem;
+      max-width: min(22rem, calc(100vw - 2rem));
+      padding: 0.75rem 1.15rem 0.85rem;
+      border-radius: 14px;
+      text-align: center;
+      background: color-mix(in srgb, var(--bg2) 88%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .dice-toast.show { opacity: 1; }
+    .dice-toast .toast-total {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+    .dice-toast .toast-flag {
+      display: none;
+      margin: 0.35rem 0 0.15rem;
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .dice-toast .toast-flag.show { display: block; }
+    .dice-toast .toast-sub {
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.35;
+      margin-top: 0.25rem;
+    }
+    .dice-toast.crit {
+      border-color: color-mix(in srgb, var(--war) 65%, var(--border));
+      box-shadow: 0 12px 36px color-mix(in srgb, var(--war) 35%, transparent);
+    }
+    .dice-toast.crit .toast-total {
+      color: color-mix(in srgb, var(--war) 85%, #fff);
+      text-shadow: 0 0 16px color-mix(in srgb, var(--war) 45%, transparent);
+    }
+    .dice-toast.crit .toast-flag { color: color-mix(in srgb, var(--war) 80%, #fff); }
+    .dice-toast.fumble {
+      border-color: color-mix(in srgb, var(--danger) 65%, var(--border));
+      box-shadow: 0 12px 36px color-mix(in srgb, var(--danger) 35%, transparent);
+    }
+    .dice-toast.fumble .toast-total { color: var(--danger); }
+    .dice-toast.fumble .toast-flag { color: var(--danger); }
+    .dice-dock .dice-sub {
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+      min-height: 1rem;
+    }
+    .dice-dock .dice-sub.crit { color: color-mix(in srgb, var(--war) 70%, var(--muted)); }
+    .dice-dock .dice-sub.fumble { color: color-mix(in srgb, var(--danger) 70%, var(--muted)); }
+    .dice-dock .dice-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem;
+    }
+    .dice-dock button {
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.4rem 0.35rem;
+      border-radius: 7px;
+    }
+    .dice-dock button.wide {
+      grid-column: 1 / -1;
+    }
+    .dice-dock button:disabled {
+      opacity: 0.45;
+    }
+    .dice-dock .dice-status {
+      font-family: var(--font-ui);
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin: 0;
+    }
+    .dice-dock .dice-status.err { color: var(--danger); }
+    .dice-style {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin: 0.15rem 0 0.35rem;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--border);
+    }
+    .dice-style .style-label {
+      font-family: var(--font-display);
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .dice-swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      align-items: center;
+    }
+    .dice-swatch {
+      width: 1.35rem;
+      height: 1.35rem;
+      border-radius: 50%;
+      border: 2px solid color-mix(in srgb, #fff 25%, transparent);
+      padding: 0;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
+    }
+    .dice-swatch.active {
+      outline: 2px solid var(--text);
+      outline-offset: 1px;
+    }
+    .dice-swatch.custom {
+      background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+    }
+    #diceColorPicker {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+    }
+    .dice-style select {
+      width: 100%;
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.4rem;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div id="dice-box"></div>
+  <div id="diceToast" class="dice-toast" hidden>
+    <div class="toast-total" id="diceToastTotal">—</div>
+    <div class="toast-flag" id="diceToastFlag"></div>
+    <div class="toast-sub" id="diceToastSub"></div>
+  </div>
+  <aside class="dice-dock" id="diceDock">
+    <div class="dice-dock-head">
+      <div class="dice-title">Nopat</div>
+      <button type="button" class="ghost" id="diceToggle" title="Piilota / näytä" aria-expanded="true">−</button>
+    </div>
+    <div class="dice-body" id="diceBody">
+      <div class="dice-result" id="diceResult">—</div>
+      <div class="dice-flag" id="diceFlag" hidden></div>
+      <div class="dice-sub" id="diceSub">3D-heitto sheetin päällä</div>
+      <div class="dice-style">
+        <span class="style-label">Tekstuuri</span>
+        <select id="diceTheme" aria-label="Noppa-tekstuuri">
+          <option value="default">Default (väri)</option>
+          <option value="smooth">Smooth (väri)</option>
+          <option value="rust">Rust (väri)</option>
+          <option value="rock">Rock (väri)</option>
+          <option value="diceOfRolling">Dice of Rolling</option>
+          <option value="wooden">Wooden</option>
+        </select>
+        <span class="style-label">Väri</span>
+        <div class="dice-swatches" id="diceSwatches">
+          <button type="button" class="dice-swatch" data-color="#c9a227" title="Kulta" style="background:#c9a227"></button>
+          <button type="button" class="dice-swatch" data-color="#4ea1ff" title="Teräs" style="background:#4ea1ff"></button>
+          <button type="button" class="dice-swatch" data-color="#3ecf8e" title="Jade" style="background:#3ecf8e"></button>
+          <button type="button" class="dice-swatch" data-color="#ef6b6b" title="Rubiini" style="background:#ef6b6b"></button>
+          <button type="button" class="dice-swatch" data-color="#a78bfa" title="Amethyst" style="background:#a78bfa"></button>
+          <button type="button" class="dice-swatch" data-color="#e8e0d0" title="Luu" style="background:#e8e0d0"></button>
+          <button type="button" class="dice-swatch" data-color="#2a2f38" title="Obsidiaani" style="background:#2a2f38"></button>
+          <button type="button" class="dice-swatch custom" id="diceCustomSwatch" title="Oma väri"></button>
+          <input type="color" id="diceColorPicker" value="#8bb8c9" />
+        </div>
+      </div>
+      <div class="dice-btns">
+        <button type="button" class="primary wide" data-roll="1d20+10" data-label="To Hit">To Hit (d20+10)</button>
+        <button type="button" data-roll="2d20kh1+10" data-label="Advantage">Adv (2d20)</button>
+        <button type="button" data-roll="2d6+10" data-label="Maul">2d6+10</button>
+        <button type="button" data-roll="1d12+2" data-label="Stone's Endurance">1d12+2</button>
+        <button type="button" data-roll="1d20" data-label="d20">d20</button>
+        <button type="button" data-roll="1d6" data-label="HM / HD">d6</button>
+        <button type="button" class="ghost wide" id="diceClear">Tyhjennä</button>
+      </div>
+      <p class="dice-status" id="diceStatus">Ladataan noppia…</p>
+    </div>
+  </aside>
+  <header class="sticky">
+    <div class="sticky-inner">
+      <div class="title-bar">
+        <div class="identity">
+          <span class="eyebrow">Goliath · Ranger L9 · Wildwalker</span>
+          <h1>Makhal “Wildwalker” Nalakthai</h1>
+          <span class="subtitle">Combat Tool · vuoron seuranta</span>
+        </div>
+        <a href="./kaelan.html">Kaelan</a>
+      </div>
+      <div class="sticky-row" id="summaryBar">
+        <div class="stat to-hit"><span class="label">To Hit</span><span class="value accent" id="sumToHit">+10</span></div>
+        <div class="stat attacks"><span class="label">Iskut</span><span class="value good" id="sumAttacks">2</span></div>
+        <div class="stat avg"><span class="label">Avg DMG</span><span class="value warn" id="sumAvg">—</span></div>
+        <div class="stat"><span class="label">AC</span><span class="value" id="sumAC">17</span></div>
+        <div class="stat"><span class="label">Crit</span><span class="value" id="sumCrit">20</span></div>
+        <div class="stat"><span class="label">Speed</span><span class="value" id="sumSpeed">45</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel" id="spellsSection">
+      <div class="panel-head">
+        <h2>Loitsut</h2>
+        <button type="button" class="spell-clear" id="spellClear" title="Tyhjennä valmistellut">Tyhjennä</button>
+      </div>
+      <p class="spell-meta" id="spellMeta">Spell attack <strong>+8</strong> · Save DC <strong>16</strong> · klikkaa loitsuja valmistellaksesi</p>
+      <div id="spellPanel"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Aseet</h2>
+      <div class="loadout-grid" id="loadoutPanel"></div>
+    </section>
+
+    <section class="panel combat-panel">
+      <div class="combat-head">
+        <h2>Combat — tämä vuoro</h2>
+        <div class="combat-head-actions">
+          <button type="button" class="btn-turn btn-new-turn" id="btnNewTurn" title="Nollaa vuorotaulu + etenee encounter-roundia">
+            <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M17.5 3.8v4.2h-4.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19.5 12a7.5 7.5 0 0 1-12.8 5.3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M6.5 20.2v-4.2h4.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Uusi vuoro</span>
+          </button>
+          <button type="button" class="btn-turn btn-clear-turn" id="btnClearTurn" title="Nollaa vuoron merkinnät kokonaan (myös Vex-ADV)">
+            <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 7h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M8 7l.7 11.2A1.5 1.5 0 0 0 10.2 19.5h3.6a1.5 1.5 0 0 0 1.5-1.3L16 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Tyhjennä</span>
+          </button>
+        </div>
+      </div>
+      <div id="combatRoot"></div>
+    </section>
+
+    <section class="panel">
+      <div class="combat-head">
+        <h2>Resurssitracker</h2>
+        <div class="combat-head-actions">
+          <button type="button" class="btn-turn btn-short-rest" id="btnShortRest" title="Palauta Short Rest -resurssit (turn/round)">
+            <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2.2"/>
+              <path d="M12 8v4.2l2.4 1.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Short Rest</span>
+          </button>
+          <button type="button" class="btn-turn btn-long-rest" id="btnLongRest" title="Palauta kaikki käyttökerat · nollaa buffit ja vuorotaulu">
+            <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 14.5c2.2-3.5 5-5.2 8-5.2 2.2 0 4.1.8 5.8 2.1" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M18.5 7.5v4h-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5 18.5h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <span>Long Rest</span>
+          </button>
+          <button type="button" class="btn-turn btn-reset-buffs" id="btnResetBuffs" title="Poista aktiiviset buffit (Hunter’s Mark, Giant Form) — ei palauta käyttökertoja">
+            <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4.5v6.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M8.2 8.2a5.8 5.8 0 1 0 7.6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <span>Buffit pois</span>
+          </button>
+        </div>
+      </div>
+      <div class="resource-list" id="resourceList"></div>
+    </section>
+  </main>
+
+  <footer>Sheet: Makhal Nalakthai L9 Ranger · localStorage: makhal-combat-v1 · GWF 1–2→3 · GWM +PB Heavy Attack action</footer>
+
+  <script>
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "makhal-combat-v1";
+
+  const CHAR = {
+    name: "Makhal “Wildwalker” Nalakthai",
+    level: 9,
+    pb: 4,
+    ac: 17,
+    hp: 69,
+    speedBase: 45,
+    speedGiant: 10,
+    saveDC: 16,
+    spellAttack: 8,
+    strMod: 5,
+    dexMod: 3,
+    conMod: 2,
+    wisMod: 4,
+    extraAttacks: 2,
+    grazeDamage: 5,
+    toppleDC: 16,
+    hitDice: 9,
+    maxPrepared: 9,
+  };
+
+  const SPELLS = [
+    { id: "guidance", name: "Guidance", level: 0, always: true, source: "MI",
+      time: "action", school: "Divination", range: "Touch", components: "V, S", duration: "Conc. 1 min",
+      effect: "Kosketus · 1d4 yhteen ability checkiin (conc. 1 min)",
+      detail: "Kosketat halukasta olentoa. Ennen keston loppua kohde voi lisätä 1d4 yhteen ability checkiin (heiton jälkeen, ennen tulosta). Yksi d4 kerrallaan." },
+    { id: "mending", name: "Mending", level: 0, always: true, source: "MI",
+      time: "action", school: "Transmutation", range: "Touch", components: "V, S, M", duration: "Instant",
+      effect: "Korjaa särkyneen esineen (1 min)",
+      detail: "Casting time 1 min. Korjaa yhden murtuman tai repeämän (enintään 1 ft) kosketetussa esineessä. Ei palauta magiaa tuhoutuneeseen taikaesineeseen." },
+    { id: "huntersMark", name: "Hunter's Mark", level: 1, always: true, source: "Favored Enemy",
+      time: "bonus", school: "Divination", range: "90 ft", components: "V", duration: "Conc. 1 h",
+      freeResource: "huntersMark",
+      effect: "+1d6 force merkittyyn · conc. · 3×/LR tai slot",
+      detail: "Merkitse näkemäsi olento. Osumat siihen tekevät +1d6 force. BA: siirrä merkki toiseen, jos edellinen putoaa 0 HP. Favored Enemy: 3×/LR ilman slottia; muuten slot.",
+      upcast: "2. taso: kesto 8 h. 3.–4. taso: 24 h." },
+    { id: "healingWord", name: "Healing Word", level: 1, always: true, source: "MI Druid",
+      time: "bonus", school: "Abjuration", range: "60 ft", components: "V", duration: "Instant",
+      freeResource: "healingWord",
+      effect: "1d4+4 HP · 60 ft · 1×/LR tai slot",
+      detail: "Näkemäsi olento saa 1d4+WIS HP (Makhal: +4). Magic Initiate: 1×/LR ilman slottia; muuten 1. tason slot.",
+      upcast: "+1d4 per slottitaso yli 1." },
+    { id: "absorbElements", name: "Absorb Elements", level: 1, time: "reaction",
+      school: "Abjuration", range: "Self", components: "S", duration: "1 round",
+      source: "XGE",
+      effect: "Reaktio damageen: resistance tyyppiin · seuraava melee +1d6 (XGE)",
+      detail: "Reaktio, kun otat acid/cold/fire/lightning/thunder -vahinkoa. Resistance siihen tyyppiin tällä vuorolla. Seuraava melee-osuma ennen seuraavaa vuoroasi +1d6 samaa tyyppiä.",
+      upcast: "+1d6 per slottitaso yli 1." },
+    { id: "alarm", name: "Alarm", level: 1, time: "action", ritual: true,
+      school: "Abjuration", range: "30 ft", components: "V, S, M", duration: "8 h",
+      effect: "Warded 20 ft cube · 8 h",
+      detail: "Casting time 1 min (tai ritual). Wardoit 20 ft kuution. Hälytys (äänetön mielessäsi tai kimeä 60 ft) kun Tiny+ olento astuu sisään ilman salasanaa." },
+    { id: "animalFriendship", name: "Animal Friendship", level: 1, time: "action",
+      school: "Enchantment", range: "30 ft", components: "V, S, M", duration: "24 h",
+      effect: "Beast WIS DC 16 tai charmed",
+      detail: "Kohde-beast tekee WIS save DC 16. Fail: charmed 24 h. Ei tehoa, jos sinä tai liittolaiset taistelette sitä vastaan.",
+      upcast: "+1 beast per slottitaso yli 1." },
+    { id: "cureWounds", name: "Cure Wounds", level: 1, time: "action",
+      school: "Abjuration", range: "Touch", components: "V, S", duration: "Instant",
+      effect: "2d8+4 HP kosketuksella (2024)",
+      detail: "Kosketettu olento saa 2d8+WIS HP (Makhal: +4). 2024-versio.",
+      upcast: "+2d8 per slottitaso yli 1." },
+    { id: "detectMagic", name: "Detect Magic", level: 1, time: "action", ritual: true,
+      school: "Divination", range: "Self", components: "V, S", duration: "Conc. 10 min",
+      effect: "Aisti magia 30 ft · conc. 10 min",
+      detail: "Aistit magian 30 ft. Näet auran esineissä ja olennoissa; Action: school jos näköyhteys." },
+    { id: "detectPoison", name: "Detect Poison and Disease", level: 1, time: "action", ritual: true,
+      school: "Divination", range: "Self", components: "V, S, M", duration: "Instant",
+      effect: "Aisti myrkky/tauti 30 ft",
+      detail: "Aistit myrkyn, myrkylliset olennot ja taudit 30 ft. Tunnistat tyypin jos se on näköyhteydessä." },
+    { id: "ensnaringStrike", name: "Ensnaring Strike", level: 1, time: "bonus",
+      school: "Conjuration", range: "Self", components: "V", duration: "Conc. 1 min",
+      effect: "Seuraava osuma +1d6 pierce · CON DC 16 tai restrained",
+      detail: "Seuraava ase-osuma ennen seuraavaa vuoroasi +1d6 pierce. Kohde CON DC 16 tai restrained köynnöksillä. Alku vuorollaan: 1d6 pierce. STR-check DC 16 vapauttaa. Large+: advantage pakenemiseen.",
+      upcast: "+1d6 osuma- ja tick-vahinkoa per slottitaso yli 1." },
+    { id: "entangle", name: "Entangle", level: 1, time: "action",
+      school: "Conjuration", range: "90 ft", components: "V, S", duration: "Conc. 1 min",
+      effect: "20 ft square · STR DC 16 tai restrained",
+      detail: "20 ft neliö täyttyy köynnöksistä (difficult terrain). Olento joka astuu sisään tai aloittaa vuoronsa siellä: STR save DC 16 tai restrained. STR-check DC 16 vapauttaa." },
+    { id: "fogCloud", name: "Fog Cloud", level: 1, time: "action",
+      school: "Conjuration", range: "120 ft", components: "V, S", duration: "Conc. 1 h",
+      effect: "20 ft sphere heavily obscured · conc.",
+      detail: "20 ft säteen pallo, heavily obscured. Tuuli (11+ mph) hajottaa.",
+      upcast: "Säde +20 ft per slottitaso yli 1." },
+    { id: "goodberry", name: "Goodberry", level: 1, time: "action",
+      school: "Conjuration", range: "Touch", components: "V, S, M", duration: "24 h",
+      effect: "10 marjaa · 1 HP / kpl, 24 h",
+      detail: "Luot 10 marjaa. Action: syö 1 marja = 1 HP. Marja riittää ruoaksi päiväksi. Vanhenee 24 h." },
+    { id: "hailOfThorns", name: "Hail of Thorns", level: 1, time: "bonus",
+      school: "Conjuration", range: "Self", components: "V", duration: "Conc. 1 min",
+      effect: "Seuraava ranged-osuma: 5 ft 1d10 pierce, DEX DC 16 half",
+      detail: "Seuraava ranged-aseosuma ennen seuraavaa vuoroasi: osumakohdan 5 ft sisällä olevat tekevät DEX DC 16, 1d10 pierce (onnistuminen puolet).",
+      upcast: "+1d10 per slottitaso yli 1." },
+    { id: "jump", name: "Jump", level: 1, time: "bonus",
+      school: "Transmutation", range: "Touch", components: "V, S, M", duration: "1 min",
+      effect: "Jump-matka kolminkertainen · 1 min",
+      detail: "Kosketettu olento hyppää 3× normaalin jump-matkan (ei concentration)." },
+    { id: "longstrider", name: "Longstrider", level: 1, time: "action",
+      school: "Transmutation", range: "Touch", components: "V, S, M", duration: "1 h",
+      effect: "+10 ft speed · 1 h (ei conc.)",
+      detail: "Kosketettu olento +10 ft speed 1 h. Ei concentration.",
+      upcast: "+1 kohde per slottitaso yli 1." },
+    { id: "speakWithAnimals", name: "Speak with Animals", level: 1, time: "action", ritual: true,
+      school: "Divination", range: "Self", components: "V, S", duration: "10 min",
+      effect: "Puhu eläimille · 10 min",
+      detail: "Ymmärrät ja puhut Beasteille. Ne voivat jakaa tietoja näkemästään; INT rajoittaa. Ei automaattisesti ystävällisiä." },
+    { id: "aid", name: "Aid", level: 2, time: "action",
+      school: "Abjuration", range: "30 ft", components: "V, S, M", duration: "8 h",
+      effect: "3 olentoa +5 HP max ja current",
+      detail: "Enintään 3 näkemääsi olentoa: HP max ja nykyinen HP +5.",
+      upcast: "+5 HP per slottitaso yli 2." },
+    { id: "barkskin", name: "Barkskin", level: 2, time: "bonus",
+      school: "Transmutation", range: "Touch", components: "V, S, M", duration: "1 h",
+      effect: "AC min 17 · 1 h",
+      detail: "2024: Bonus Action, kosketus. Kohteen AC ei voi olla alle 17 (ei concentration)." },
+    { id: "darkvision", name: "Darkvision", level: 2, time: "action",
+      school: "Transmutation", range: "Touch", components: "V, S, M", duration: "8 h",
+      effect: "Darkvision 60 ft · 8 h",
+      detail: "Kosketettu olento saa Darkvision 60 ft 8 h." },
+    { id: "enhanceAbility", name: "Enhance Ability", level: 2, time: "action",
+      school: "Transmutation", range: "Touch", components: "V, S, M", duration: "Conc. 1 h",
+      effect: "ADV yhteen ability check -tyyppiin · conc. 1 h",
+      detail: "Valitse Strength, Dexterity, Constitution, Intelligence, Wisdom tai Charisma. Kohde ADV sen ability checkeihin.",
+      upcast: "+1 kohde per slottitaso yli 2 (sama kyky)." },
+    { id: "gustOfWind", name: "Gust of Wind", level: 2, time: "action",
+      school: "Evocation", range: "Self", components: "V, S, M", duration: "Conc. 1 min",
+      effect: "60 ft line työntää · STR DC 16",
+      detail: "60 ft × 10 ft viiva tuulta poispäin sinusta. STR save DC 16 tai 15 ft taakse. Viiva on difficult terrain sinua kohti. BA: käännä suunta." },
+    { id: "lesserRestoration", name: "Lesser Restoration", level: 2, time: "action",
+      school: "Abjuration", range: "Touch", components: "V, S", duration: "Instant",
+      effect: "Poista blinded / deafened / paralyzed / poisoned",
+      detail: "Kosketus: poista yksi condition — blinded, deafened, paralyzed tai poisoned." },
+    { id: "locateObject", name: "Locate Object", level: 2, time: "action",
+      school: "Divination", range: "Self", components: "V, S, M", duration: "Conc. 10 min",
+      effect: "Etsi esine 1000 ft · conc. 10 min",
+      detail: "Tunnet suunnan tunnettuun esineeseen 1000 ft, tai lähimpään tyyppiin (kuten portaikko). Este: ohut lyijy." },
+    { id: "passWithoutTrace", name: "Pass without Trace", level: 2, time: "action",
+      school: "Abjuration", range: "Self", components: "V, S, M", duration: "Conc. 1 h",
+      effect: "+10 Stealth, ei jälkiä · conc. 1 h",
+      detail: "Sinä ja liittolaiset 30 ft: +10 Stealth, ei jätä jälkiä. Vaikea jäljittää ilman magiaa." },
+    { id: "protectionFromPoison", name: "Protection from Poison", level: 2, time: "action",
+      school: "Abjuration", range: "Touch", components: "V, S", duration: "1 h",
+      effect: "Neutraloi poison + resistance · 1 h",
+      detail: "Neutraloi yksi poison kosketetussa. 1 h: ADV saves vs. poisoned, resistance poison-vahinkoon." },
+    { id: "silence", name: "Silence", level: 2, time: "action", ritual: true,
+      school: "Illusion", range: "120 ft", components: "V, S", duration: "Conc. 10 min",
+      effect: "20 ft sphere ei ääntä / verbal · conc.",
+      detail: "20 ft pallo: ei ääntä, ei thunder-vahinkoa, ei verbal-komponenttia. Deafened alueella." },
+    { id: "spikeGrowth", name: "Spike Growth", level: 2, time: "action",
+      school: "Transmutation", range: "150 ft", components: "V, S, M", duration: "Conc. 10 min",
+      effect: "20 ft radius difficult · 2d4 / 5 ft · conc.",
+      detail: "20 ft säde difficult terrain. 2d4 pierce jokaista 5 ft liikettä alueella. Piikit naamioituvat; Perception vs spell save DC huomaa." },
+    { id: "summonBeast", name: "Summon Beast", level: 2, time: "action",
+      school: "Conjuration", range: "90 ft", components: "V, S, M", duration: "Conc. 1 h",
+      effect: "Beast spirit · conc. 1 h",
+      detail: "Kutsut Bestial Spiritin (Land/Sea/Air, Tasha/2024). Se on liittolainen, toimii sinun vuorollasi. Käytä stat blockia kirjasta; spell attack +8, DC 16.",
+      upcast: "Spiritin tilastot nousevat slottitason mukaan (ks. block)." },
+    { id: "conjureAnimals", name: "Conjure Animals", level: 3, time: "action",
+      school: "Conjuration", range: "60 ft", components: "V, S", duration: "Conc. 10 min",
+      effect: "Large swarm of spectral beasts · conc.",
+      detail: "2024: Large spektraalinen beast-parvi, täyttää 10 ft kuution. Liittolainen; vahinko ja pack-säännöt PHB 2024:n mukaan. Ei vanhaa “8 sutta”." },
+    { id: "conjureBarrage", name: "Conjure Barrage", level: 3, time: "action",
+      school: "Conjuration", range: "Self", components: "V, S, M", duration: "Instant",
+      effect: "60 ft cone 5d8 force · DEX DC 16 half",
+      detail: "Heität aseen tai ammuksen: 60 ft kartio, 5d8 force. DEX DC 16, onnistuminen puolet. 2024 force (ei aseen tyyppi)." },
+    { id: "daylight", name: "Daylight", level: 3, time: "action",
+      school: "Evocation", range: "60 ft", components: "V, S", duration: "1 h",
+      effect: "60 ft bright light · 1 h",
+      detail: "60 ft kirkas valo + 60 ft dim. Esineeseen tai pisteeseen. Maginen pimeys 3. taso tai alempi vaimenee." },
+    { id: "dispelMagic", name: "Dispel Magic", level: 3, time: "action",
+      school: "Abjuration", range: "120 ft", components: "V, S", duration: "Instant",
+      effect: "Pura 3. tason tai alempi spell",
+      detail: "Kohde olento, esine tai efekti. 3. taso tai alempi spell päättyy. Korkeampi: ability check DC 10+spell level (WIS / spellcasting).",
+      upcast: "Automaattinen purku slottitasoon asti." },
+    { id: "lightningArrow", name: "Lightning Arrow", level: 3, time: "bonus",
+      school: "Transmutation", range: "Self", components: "V, S", duration: "Conc. 1 min",
+      effect: "Seuraava ranged: 4d8 lightning + 2d8 10 ft (DEX half)",
+      detail: "Seuraava ranged-aseosuma: 4d8 lightning osuman sijaan (ohi puolet). 10 ft sisällä DEX DC 16, 2d8 lightning (onnistuminen puolet).",
+      upcast: "+1d8 sekä osuma- että splash-vahinkoon per slottitaso yli 3." },
+    { id: "plantGrowth", name: "Plant Growth", level: 3, time: "action",
+      school: "Transmutation", range: "150 ft", components: "V, S", duration: "Instant",
+      effect: "Kasvu: ¼ speed 100 ft radius tai 8 h enrichment",
+      detail: "Overgrowth (1 Action): 100 ft säde, liike maksaa 4×. Enrichment (8 h): sato ×2 vuodeksi 1 mile -alueella." },
+    { id: "protectionFromEnergy", name: "Protection from Energy", level: 3, time: "action",
+      school: "Abjuration", range: "Touch", components: "V, S", duration: "Conc. 1 h",
+      effect: "Resistance acid/cold/fire/lightning/thunder · conc. 1 h",
+      detail: "Kosketus: valitse acid, cold, fire, lightning tai thunder. Resistance siihen 1 h (concentration)." },
+    { id: "revivify", name: "Revivify", level: 3, time: "action",
+      school: "Necromancy", range: "Touch", components: "V, S, M (300 gp)", duration: "Instant",
+      effect: "Nosta kuollut (≤1 min) · 300 gp diamond",
+      detail: "Kosketus olentoon joka kuoli ≤1 min sitten. Palaa 1 HP. Ei palauta puuttuvia ruumiinosia; ei tehoa vanhuuskuolemaan. Materiaali 300 gp diamond, kuluu." },
+    { id: "waterBreathing", name: "Water Breathing", level: 3, time: "action", ritual: true,
+      school: "Transmutation", range: "30 ft", components: "V, S, M", duration: "24 h",
+      effect: "Enintään 10 olentoa hengittää vettä · 24 h",
+      detail: "Enintään 10 halukasta olentoa 30 ft hengittää vettä 24 h." },
+    { id: "waterWalk", name: "Water Walk", level: 3, time: "action", ritual: true,
+      school: "Transmutation", range: "30 ft", components: "V, S, M", duration: "1 h",
+      effect: "Kävele nesteen pinnalla · 1 h",
+      detail: "Enintään 10 olentoa kävelee nesteen (vesi, happo, lava…) pinnalla. Uppoutunut voi uida pintaan 60 ft / round." },
+    { id: "windWall", name: "Wind Wall", level: 3, time: "action",
+      school: "Evocation", range: "120 ft", components: "V, S, M", duration: "Conc. 1 min",
+      effect: "Seinä tuulta · STR DC 16 · conc. 1 min",
+      detail: "Seinä max 50×15×1 ft. STR save DC 16 tai 15 ft taakse munakokoiset ammukset pysähtyvät; kaasut ja sumu eivät läpäise. 3d8 bludgeon jos luotu olennon päälle (save puolet)." },
+  ];
+
+  SPELLS.sort((a, b) => {
+    if (a.level !== b.level) return a.level - b.level;
+    return a.name.localeCompare(b.name, "en", { sensitivity: "base" });
+  });
+  const SPELL_BY_ID = Object.fromEntries(SPELLS.map((s) => [s.id, s]));
+
+  function defaultPrepared() {
+    return ["cureWounds", "ensnaringStrike", "fogCloud", "goodberry", "longstrider",
+      "passWithoutTrace", "spikeGrowth", "conjureAnimals", "lightningArrow"];
+  }
+
+  const WEAPON_IDS = ["maul", "handaxe", "longbow", "greatsword"];
+
+  const WEAPON_GLYPH = {
+    maul: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M8 8 H32 V18 H8 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M20 18 V50" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M16 48 H24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+    handaxe: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M12 8 L28 14 L22 24 L10 16 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M16 22 L24 50" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+    longbow: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M28 6 C12 18 12 38 28 50" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M28 6 L28 50" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M10 28 H28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+    greatsword: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M20 2 L26 10 L26 38 L32 42 L32 46 L8 46 L8 42 L14 38 L14 10 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M8 42 H32 M20 46 V54" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+  };
+
+  function weaponCardHtml(glyphKey, label) {
+    const glyph = WEAPON_GLYPH[glyphKey] || WEAPON_GLYPH.maul;
+    return `<span class="weapon-glyph">${glyph}</span><span class="wpn-label">${label}</span>`;
+  }
+
+  const WEAPONS = {
+    maul: {
+      id: "maul",
+      name: "Maul +1",
+      short: "Maul +1",
+      faces: 6,
+      diceCount: 2,
+      type: "bludgeoning",
+      mastery: "Topple",
+      toHit: 10,
+      strFlat: 6,
+      gwm: true,
+      gwf: true,
+      heavy: true,
+      ranged: false,
+      graze: false,
+      vex: false,
+      properties: "Martial · Heavy, Two-Handed",
+      magic: "+1 magic weapon",
+      masteryDetail: "Osuma: kohde CON save DC 16 tai Prone.",
+      notes: "GWF: damage-nopan 1–2 → 3. GWM: Attack action Heavy-osuma +PB damage; osuma → BA extra melee (tässä vuorossa).",
+    },
+    handaxe: {
+      id: "handaxe",
+      name: "Handaxe",
+      short: "Handaxe",
+      faces: 6,
+      diceCount: 1,
+      type: "slashing",
+      mastery: "Vex",
+      toHit: 8,
+      strFlat: 5,
+      gwm: false,
+      gwf: false,
+      heavy: false,
+      ranged: false,
+      range: "20/60",
+      graze: false,
+      vex: true,
+      properties: "Simple · Light, Thrown (20/60)",
+      masteryDetail: "Osuma: Advantage seuraavaan hyökkäykseen samaa kohdetta vastaan tällä vuorolla.",
+    },
+    longbow: {
+      id: "longbow",
+      name: "Longbow",
+      short: "Longbow",
+      faces: 8,
+      diceCount: 1,
+      type: "piercing",
+      mastery: "Slow",
+      toHit: 8,
+      strFlat: 4,
+      gwm: false,
+      gwf: false,
+      heavy: false,
+      ranged: true,
+      range: "150/600",
+      graze: false,
+      vex: false,
+      properties: "Martial · Ammunition (150/600), Heavy, Two-Handed",
+      masteryDetail: "Osuma: kohteen speed −10 ft seuraavan vuoronsa alkuun (ei kasaudu).",
+    },
+    greatsword: {
+      id: "greatsword",
+      name: "Moon-touched Greatsword",
+      short: "Greatsword",
+      faces: 6,
+      diceCount: 2,
+      type: "slashing",
+      mastery: "Graze",
+      toHit: 9,
+      strFlat: 5,
+      gwm: true,
+      gwf: true,
+      heavy: true,
+      ranged: false,
+      graze: true,
+      vex: false,
+      moonlight: true,
+      properties: "Martial · Heavy, Two-Handed",
+      magic: "Moon-touched · maginen · himmeä valo",
+      masteryDetail: "Ohi: silti STR-modin verran slashing (Graze 5). Ei crit, ei sneak.",
+      notes: "GWF 1–2 → 3. GWM +PB Attack-action Heavy-osumaan. Moon-touched: 15 ft dim light, lasketaan magiseksi.",
+    },
+  };
+
+  function defaultLoadout() {
+    return { main: "maul" };
+  }
+
+  function normalizeLoadout(raw) {
+    const L = { ...defaultLoadout(), ...(raw || {}) };
+    if (!WEAPONS[L.main]) L.main = "maul";
+    return L;
+  }
+
+  function getWeapon(id) {
+    return WEAPONS[id] || WEAPONS.maul;
+  }
+
+  function activeWeapon() {
+    return getWeapon(normalizeLoadout(state.loadout).main);
+  }
+
+  const RESOURCES = [
+    { id: "huntersMark", name: "Hunter's Mark", slots: 3, rest: "lr", source: "class",
+      effect: "BA, conc. · +1d6 force merkittyyn · 3×/LR (sheet)" },
+    { id: "stonesEndurance", name: "Stone's Endurance", slots: 3, rest: "lr", source: "class",
+      effect: "Reaktio: vähennä 1d12+2 damage (CON)" },
+    { id: "giantForm", name: "Giant Form", slots: 1, rest: "lr", source: "class",
+      effect: "BA: Large · ADV STR-check · +10 ft speed" },
+    { id: "healingWord", name: "Healing Word (MI)", slots: 1, rest: "lr", source: "feat",
+      effect: "BA: 1d4+4 HP (WIS) · 1×/LR ilman slottia" },
+    { id: "slot1", name: "Spell slot 1st", slots: 4, rest: "lr", source: "class",
+      effect: "1. tason loitsuslotti" },
+    { id: "slot2", name: "Spell slot 2nd", slots: 3, rest: "lr", source: "class",
+      effect: "2. tason loitsuslotti" },
+    { id: "slot3", name: "Spell slot 3rd", slots: 2, rest: "lr", source: "class",
+      effect: "3. tason loitsuslotti" },
+    { id: "hitDice", name: "Hit Dice (d10)", slots: 9, rest: "lr", source: "other",
+      effect: "Short Rest: käytä HD 1d10+2 HP" },
+    { id: "heroicInspiration", name: "Heroic Inspiration", slots: 1, rest: "lr", source: "other",
+      effect: "Reroll mikä tahansa d20 (1×)" },
+    { id: "potionFireRes", name: "Potion of Fire Resistance", slots: 1, rest: "dawn", source: "item",
+      effect: "Resistance fire 1 h" },
+    { id: "potionWaterBreath", name: "Potion of Water Breathing", slots: 3, rest: "dawn", source: "item",
+      effect: "Veden alla hengitys 1 h" },
+    { id: "ringWarmth", name: "Ring of Warmth", slots: 1, rest: "lr", source: "item",
+      effect: "Passiivinen: cold resistance (ei kulu)" },
+    { id: "wildwalkerNote", name: "Wildwalker (custom)", slots: 1, rest: "lr", source: "subclass",
+      effect: "Placeholder — Lassen featuret kun tiedossa" },
+  ];
+
+  const RESOURCE_SOURCE_ORDER = ["class", "subclass", "feat", "item", "other"];
+  const RESOURCE_SOURCE_LABEL = {
+    class: "Class · Ranger / Goliath",
+    subclass: "Subclass · Wildwalker",
+    feat: "Feat",
+    item: "Magic item",
+    other: "Muu",
+  };
+  const RESOURCE_SOURCE_BADGE = {
+    class: "Class",
+    subclass: "Subclass",
+    feat: "Feat",
+    item: "Item",
+    other: "Muu",
+  };
+  const RESOURCE_REST_BADGE = {
+    lr: "LR",
+    sr: "SR",
+    dawn: "Dawn",
+    turn: "Vuoro",
+    round: "Round",
+  };
+
+  const defaultBuffs = () => ({
+    huntersMark: false,
+    giantForm: false,
+    advantage: false,
+    attackAction: true,
+    moonlight: false,
+    ensnaringStrike: false,
+    hailOfThorns: false,
+    lightningArrow: false,
+    longstrider: false,
+    barkskin: false,
+  });
+
+  const defaultUsed = () => {
+    const u = {};
+    RESOURCES.forEach((r) => { u[r.id] = 0; });
+    return u;
+  };
+
+  function defaultCombat() {
+    return {
+      fingerprint: "",
+      attackResults: {},
+      kills: {},
+      vexAdvCarry: false,
+      pendingCrit: false,
+      actionMode: "attack",
+      usedBonus: null,
+      usedReaction: null,
+      usedAction: null,
+      bonusSpentResource: null,
+      reactionSpentResource: null,
+      actionSpentResource: null,
+      round: 1,
+    };
+  }
+
+  let state = {
+    loadout: defaultLoadout(),
+    prepared: defaultPrepared(),
+    spellFilter: "all",
+    spellTime: "all",
+    spellView: "cards",
+    buffs: defaultBuffs(),
+    used: defaultUsed(),
+    combat: defaultCombat(),
+    resourceSort: { key: "source", dir: 1 },
+    resourceFilter: "all",
+  };
+
+  const RESOURCE_REST_SORT = { turn: 0, round: 1, sr: 2, lr: 3, dawn: 4 };
+  const RESOURCE_SOURCE_SORT = { class: 0, subclass: 1, feat: 2, item: 3, other: 4 };
+
+  function resourceRemaining(id) {
+    const r = RESOURCES.find((x) => x.id === id);
+    if (!r) return 0;
+    return Math.max(0, r.slots - (state.used[id] || 0));
+  }
+
+  function resourcePipsHtml(resourceId) {
+    const r = RESOURCES.find((x) => x.id === resourceId);
+    if (!r) return "";
+    const used = state.used[resourceId] || 0;
+    const left = Math.max(0, r.slots - used);
+    const cells = Array.from({ length: r.slots }, (_, i) =>
+      `<span class="card-pip${i < left ? " on" : ""}"></span>`
+    ).join("");
+    return `<span class="card-pips" title="${left}/${r.slots} jäljellä" aria-label="${left} jäljellä">${cells}</span>`;
+  }
+
+  function spendResourceOnce(id) {
+    const r = RESOURCES.find((x) => x.id === id);
+    if (!r) return false;
+    if ((state.used[id] || 0) >= r.slots) return false;
+    state.used[id] = (state.used[id] || 0) + 1;
+    return true;
+  }
+
+  function unspendResourceOnce(id) {
+    if ((state.used[id] || 0) > 0) {
+      state.used[id] -= 1;
+      return true;
+    }
+    return false;
+  }
+
+  function isPrepared(id) {
+    const s = SPELL_BY_ID[id];
+    if (!s) return false;
+    if (s.always) return true;
+    return (state.prepared || []).includes(id);
+  }
+
+  function preparedCount() {
+    return (state.prepared || []).filter((id) => SPELL_BY_ID[id] && !SPELL_BY_ID[id].always).length;
+  }
+
+  function slotCapacity() {
+    const cap = { 1: 0, 2: 0, 3: 0 };
+    for (let n = 1; n <= 3; n++) {
+      const r = RESOURCES.find((x) => x.id === "slot" + n);
+      cap[n] = r ? r.slots : 0;
+    }
+    return cap;
+  }
+
+  function countedPreparedIds(ids) {
+    return (ids || []).filter((id) => {
+      const s = SPELL_BY_ID[id];
+      return s && !s.always && s.level >= 1;
+    });
+  }
+
+  function preparedSlotUse(ids) {
+    const cap = slotCapacity();
+    const used = { 1: 0, 2: 0, 3: 0 };
+    const spells = countedPreparedIds(ids)
+      .map((id) => SPELL_BY_ID[id])
+      .sort((a, b) => b.level - a.level);
+    spells.forEach((s) => {
+      for (let lv = s.level; lv <= 3; lv++) {
+        if (used[lv] < cap[lv]) {
+          used[lv] += 1;
+          return;
+        }
+      }
+    });
+    return used;
+  }
+
+  function preparedFitsSlots(ids) {
+    const list = countedPreparedIds(ids);
+    if (list.length > CHAR.maxPrepared) return false;
+    const used = preparedSlotUse(ids);
+    return used[1] + used[2] + used[3] === list.length;
+  }
+
+  function canPrepareSpell(spell) {
+    if (!spell || spell.always || spell.level < 1) return false;
+    if ((state.prepared || []).includes(spell.id)) return true;
+    return preparedFitsSlots([...(state.prepared || []), spell.id]);
+  }
+
+  function clampPrepared() {
+    let kept = countedPreparedIds(state.prepared);
+    while (kept.length && !preparedFitsSlots(kept)) kept = kept.slice(0, -1);
+    state.prepared = kept;
+  }
+
+  function togglePrepared(id) {
+    const s = SPELL_BY_ID[id];
+    if (!s || s.always) return;
+    const cur = state.prepared || [];
+    if (cur.includes(id)) {
+      state.prepared = cur.filter((x) => x !== id);
+    } else {
+      if (!canPrepareSpell(s)) return;
+      state.prepared = [...cur, id];
+    }
+    save();
+    renderAll();
+  }
+
+  function lowestSlotId(minLevel) {
+    const lv = Math.max(1, minLevel || 1);
+    for (let n = lv; n <= 3; n++) {
+      if (resourceRemaining("slot" + n) > 0) return "slot" + n;
+    }
+    return null;
+  }
+
+  function spellResourceForCast(spell) {
+    if (spell.level === 0) return null;
+    if (spell.freeResource && resourceRemaining(spell.freeResource) > 0) return spell.freeResource;
+    return lowestSlotId(spell.level);
+  }
+
+  function canCastSpell(spell) {
+    if (!isPrepared(spell.id)) return false;
+    if (spell.level === 0) return true;
+    return !!spellResourceForCast(spell);
+  }
+
+  function applySpellBuff(spell, on) {
+    if (spell.id === "huntersMark") state.buffs.huntersMark = on;
+    if (spell.id === "ensnaringStrike") state.buffs.ensnaringStrike = on;
+    if (spell.id === "hailOfThorns") state.buffs.hailOfThorns = on;
+    if (spell.id === "lightningArrow") state.buffs.lightningArrow = on;
+    if (spell.id === "longstrider") state.buffs.longstrider = on;
+    if (spell.id === "barkskin") state.buffs.barkskin = on;
+  }
+
+  function timeLabel(time) {
+    if (time === "bonus") return "Bonus";
+    if (time === "reaction") return "Reaktio";
+    if (time === "action") return "Action";
+    return time;
+  }
+
+  function timeBadgeHtml(time) {
+    const t = time === "bonus" || time === "reaction" ? time : "action";
+    return `<span class="time-badge time-${t}">${timeLabel(t)}</span>`;
+  }
+
+  function makeSpellCombatCard(spell) {
+    const res = spellResourceForCast(spell);
+    const lvl = spell.level === 0 ? "Cantrip" : `${spell.level}.`;
+    const src = spell.freeResource && res === spell.freeResource ? "ilmainen" : (res ? res.replace("slot", "slot ") : "—");
+    return {
+      id: "spell:" + spell.id,
+      title: spell.name,
+      sub: `${lvl} · ${timeLabel(spell.time)} · ${spell.effect}${spell.level ? " · " + src : ""}`,
+      resourceId: res,
+      onUse() { applySpellBuff(spell, true); },
+      onUndo() { applySpellBuff(spell, false); },
+    };
+  }
+
+  const ACTION_MODES = [
+    { id: "attack", label: "Hyökkäys", sub: "Attack Action · lyönnit" },
+    { id: "move", label: "Liikkuminen", sub: "Vain liike · 1× speed" },
+    { id: "hide", label: "Hiipiminen", sub: "Hide · Stealth-check" },
+    { id: "dash", label: "Juokseminen", sub: "Dash · 2× speed" },
+  ];
+
+  function getActionMode() {
+    const m = state.combat.actionMode;
+    return ACTION_MODES.some((x) => x.id === m) ? m : "attack";
+  }
+
+  function getWalkSpeed() {
+    let speed = CHAR.speedBase;
+    if (state.buffs.giantForm) speed += CHAR.speedGiant;
+    if (state.buffs.longstrider) speed += 10;
+    return speed;
+  }
+
+  function getTurnMoveBudget() {
+    const walk = getWalkSpeed();
+    if (getActionMode() === "dash") return walk * 2;
+    return walk;
+  }
+
+  function getSpeedLabel() {
+    const budget = getTurnMoveBudget();
+    if (getActionMode() === "dash") return `${budget} (Dash)`;
+    return String(budget);
+  }
+
+  function combatFingerprint() {
+    const L = normalizeLoadout(state.loadout);
+    const b = state.buffs;
+    return [L.main, getActionMode(), b.huntersMark ? 1 : 0, b.giantForm ? 1 : 0].join("|");
+  }
+
+  function ensureCombatSynced() {
+    const fp = combatFingerprint();
+    if (!state.combat.attackResults) state.combat.attackResults = {};
+    if (!state.combat.kills) state.combat.kills = {};
+    if (state.combat.fingerprint !== fp) {
+      state.combat.fingerprint = fp;
+      state.combat.attackResults = {};
+      state.combat.kills = {};
+    }
+  }
+
+  function gwfDieAvg(faces) {
+    let sum = 0;
+    for (let i = 1; i <= faces; i++) sum += i <= 2 ? 3 : i;
+    return sum / faces;
+  }
+
+  function weaponDamageParts(weapon, opts) {
+    const w = typeof weapon === "string" ? getWeapon(weapon) : weapon;
+    const gwmOn = !!(opts && opts.gwmOn && w.gwm);
+    const hm = !!(opts && opts.huntersMark);
+    const parts = [];
+    parts.push({
+      label: `${w.diceCount}d${w.faces}`,
+      faces: w.faces,
+      count: w.diceCount,
+      flat: 0,
+      doublesOnCrit: true,
+      gwf: !!w.gwf,
+    });
+    const flat = w.strFlat + (gwmOn ? CHAR.pb : 0);
+    parts.push({ label: `+${flat}`, faces: 0, count: 0, flat });
+    if (hm) {
+      parts.push({ label: "+1d6 HM", faces: 6, count: 1, flat: 0, doublesOnCrit: true, gwf: false });
+    }
+    if (opts && opts.ensnaringStrike && !w.ranged) {
+      parts.push({ label: "+1d6 Ensnaring", faces: 6, count: 1, flat: 0, doublesOnCrit: true, gwf: false });
+    }
+    if (opts && opts.hailOfThorns && w.ranged) {
+      parts.push({ label: "+1d10 Thorns", faces: 10, count: 1, flat: 0, doublesOnCrit: false, gwf: false });
+    }
+    if (opts && opts.lightningArrow && w.ranged) {
+      parts.push({ label: "+4d8 Lightning Arrow", faces: 8, count: 4, flat: 0, doublesOnCrit: false, gwf: false });
+    }
+    return parts;
+  }
+
+  function dmgOpts(extra) {
+    return {
+      huntersMark: state.buffs.huntersMark,
+      ensnaringStrike: state.buffs.ensnaringStrike,
+      hailOfThorns: state.buffs.hailOfThorns,
+      lightningArrow: state.buffs.lightningArrow,
+      ...(extra || {}),
+    };
+  }
+
+  function dieMin(p) {
+    if (!p.faces || !p.count) return p.flat || 0;
+    const m = p.gwf ? 3 : 1;
+    return p.flat + p.count * m;
+  }
+  function dieAvg(p) {
+    if (!p.faces || !p.count) return p.flat || 0;
+    const avg = p.gwf ? gwfDieAvg(p.faces) : (p.faces + 1) / 2;
+    return p.flat + p.count * avg;
+  }
+  function dieMax(p) {
+    if (!p.faces || !p.count) return p.flat || 0;
+    return p.flat + p.count * p.faces;
+  }
+  function partsMin(parts) { return parts.reduce((s, p) => s + dieMin(p), 0); }
+  function partsAvg(parts) { return parts.reduce((s, p) => s + dieAvg(p), 0); }
+  function partsMax(parts) { return parts.reduce((s, p) => s + dieMax(p), 0); }
+  function partsFormula(parts) { return parts.map((p) => p.label).join(" "); }
+
+  function partsToDiceSpec(parts, crit) {
+    const byFace = {};
+    let flat = 0;
+    (parts || []).forEach((p) => {
+      flat += p.flat || 0;
+      if (p.faces && p.count) {
+        const n = crit && p.doublesOnCrit ? p.count * 2 : p.count;
+        byFace[p.faces] = (byFace[p.faces] || 0) + n;
+      }
+    });
+    const dice = Object.keys(byFace)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map((f) => `${byFace[f]}d${f}`)
+      .join("+");
+    if (!dice) return flat ? `${flat}` : "1d1";
+    if (!flat) return dice;
+    return flat > 0 ? `${dice}+${flat}` : `${dice}${flat}`;
+  }
+
+  function setPendingCrit(on) {
+    ensureCombatSynced();
+    const next = !!on;
+    if (!!state.combat.pendingCrit === next) return;
+    state.combat.pendingCrit = next;
+    save();
+    renderAll();
+  }
+
+  function consumePendingCrit() {
+    if (!state.combat.pendingCrit) return false;
+    state.combat.pendingCrit = false;
+    save();
+    renderAll();
+    return true;
+  }
+
+  window.kaelanOnToHitFlag = (flag) => setPendingCrit(flag === "crit");
+  window.kaelanConsumePendingCrit = () => consumePendingCrit();
+  window.kaelanHasPendingCrit = () => !!state.combat.pendingCrit;
+
+  function attackHitSpec(hasAdv, toHit) {
+    return hasAdv ? `2d20kh1+${toHit}` : `1d20+${toHit}`;
+  }
+
+  function rollForCard(spec, label) {
+    if (window.kaelanDice && typeof window.kaelanDice.roll === "function") {
+      window.kaelanDice.roll(spec, label);
+      return;
+    }
+    const m = String(spec).match(/^(\d*)d(\d+)(kh1|kl1)?([+-]\d+)?$/i);
+    if (!m) return;
+    const n = m[1] ? parseInt(m[1], 10) : 1;
+    const faces = parseInt(m[2], 10);
+    const keep = m[3] ? m[3].toLowerCase() : null;
+    const mod = m[4] ? parseInt(m[4], 10) : 0;
+    const vals = Array.from({ length: n }, () => 1 + Math.floor(Math.random() * faces));
+    let used = vals;
+    if (keep === "kh1") used = [Math.max(...vals)];
+    if (keep === "kl1") used = [Math.min(...vals)];
+    const total = used.reduce((a, b) => a + b, 0) + mod;
+    alert(`${label}: ${total}`);
+  }
+
+  function buildActionAttacks() {
+    const w = activeWeapon();
+    const attacks = [];
+    for (let i = 0; i < CHAR.extraAttacks; i++) {
+      attacks.push({
+        weaponId: w.id,
+        tag: i === 0 ? w.mastery : "",
+        sourceLabel: "Action",
+        gwmOn: !!w.gwm,
+      });
+    }
+    return attacks;
+  }
+
+  function gwmEligible() {
+    const w = activeWeapon();
+    if (!w.gwm || getActionMode() !== "attack") return false;
+    const cards = getCombatAttackCards();
+    return cards.some((c) => c.sourceLabel === "Action" && (c.result === "hit") && (
+      !!state.combat.kills[c.id] || !!state.combat.pendingCrit
+    ));
+  }
+
+  function buildRawCombatAttackCards() {
+    if (getActionMode() !== "attack") return [];
+    const w = activeWeapon();
+    const cards = [];
+    const hits = buildActionAttacks();
+    hits.forEach((hit, i) => {
+      const parts = weaponDamageParts(w, dmgOpts({ gwmOn: hit.gwmOn }));
+      const n = i + 1;
+      const id = `atk-${n}-${w.id}-Action`;
+      cards.push({
+        id,
+        kind: "attack",
+        weaponId: w.id,
+        sourceLabel: "Action",
+        nativeMastery: w.mastery,
+        mastery: w.mastery,
+        tag: hit.tag || "",
+        gwmOn: hit.gwmOn,
+        graze: !!w.graze,
+        vex: !!w.vex,
+        damageParts: parts,
+        damageSpec: partsToDiceSpec(parts, false),
+        damageSpecCrit: partsToDiceSpec(parts, true),
+        damageLabel: partsFormula(parts),
+        title: `${n}. ${w.short}`,
+        sub: ["Action", partsFormula(parts), `to hit +${w.toHit}`].join(" · "),
+        toHit: w.toHit,
+      });
+    });
+
+    if (state.combat.usedBonus === "gwmBa") {
+      const parts = weaponDamageParts(w, dmgOpts({ gwmOn: false }));
+      cards.push({
+        id: `atk-gwm-${w.id}`,
+        kind: "attack",
+        weaponId: w.id,
+        sourceLabel: "GWM (BA)",
+        nativeMastery: w.mastery,
+        mastery: w.mastery,
+        tag: "GWM",
+        gwmOn: false,
+        graze: !!w.graze,
+        vex: !!w.vex,
+        damageParts: parts,
+        damageSpec: partsToDiceSpec(parts, false),
+        damageSpecCrit: partsToDiceSpec(parts, true),
+        damageLabel: partsFormula(parts),
+        title: `GWM · ${w.short}`,
+        sub: ["Bonus Action", partsFormula(parts), `to hit +${w.toHit}`, "ei +PB"].join(" · "),
+        toHit: w.toHit,
+      });
+    }
+    return cards;
+  }
+
+  function annotateMasteryCascade(cards, startingCarry) {
+    let arm = !!startingCarry;
+    let carryHeldByUnresolved = false;
+    let startingCarryApplied = false;
+
+    const annotated = cards.map((card) => {
+      const result = state.combat.attackResults[card.id] || null;
+      const chips = [];
+      const effective = card.mastery || "";
+      if (effective === "Vex") chips.push("vex");
+      if (effective === "Topple") chips.push("topple");
+      if (effective === "Slow") chips.push("slow");
+      if (effective === "Graze") chips.push("graze");
+
+      const grantsVex = effective === "Vex";
+      const hasAdv = arm;
+      const advFromPrevTurn = hasAdv && !!startingCarry && !startingCarryApplied;
+      if (hasAdv) {
+        startingCarryApplied = true;
+        chips.push("adv");
+      }
+
+      let vexGranted = false;
+      if (result === "hit" && grantsVex) {
+        arm = true;
+        vexGranted = true;
+      } else if (result === "hit" || result === "miss") {
+        arm = false;
+      } else if (hasAdv) {
+        carryHeldByUnresolved = true;
+        arm = false;
+      }
+
+      let tmEffect = "";
+      if (result === "hit") {
+        if (effective === "Topple") tmEffect = `Topple: CON save DC ${CHAR.toppleDC} tai prone`;
+        else if (effective === "Slow") tmEffect = "Slow: speed −10 ft seuraavaan vuoroon";
+      }
+
+      return {
+        ...card,
+        result,
+        hasAdv,
+        advFromPrevTurn,
+        grantsVex,
+        vexGranted,
+        tmEffect,
+        chips,
+        reminders: [],
+        kill: !!state.combat.kills[card.id],
+      };
+    });
+
+    const vexAdvCarry = carryHeldByUnresolved || arm;
+    return { cards: annotated, vexAdvCarry };
+  }
+
+  function getCombatAttackCards() {
+    if (getActionMode() !== "attack") return [];
+    return annotateMasteryCascade(buildRawCombatAttackCards(), !!state.combat.vexAdvCarry).cards;
+  }
+
+  function getActionColumnAttacks() {
+    return getCombatAttackCards().filter((c) => c.sourceLabel !== "GWM (BA)");
+  }
+
+  function getGwmCombatCard() {
+    return getCombatAttackCards().find((c) => c.sourceLabel === "GWM (BA)") || null;
+  }
+
+  function syncVexAdvCarry() {
+    const { vexAdvCarry } = annotateMasteryCascade(buildRawCombatAttackCards(), !!state.combat.vexAdvCarry);
+    state.combat.vexAdvCarry = !!vexAdvCarry;
+  }
+
+  function setAttackResult(id, result) {
+    ensureCombatSynced();
+    if (state.combat.attackResults[id] === result) {
+      delete state.combat.attackResults[id];
+    } else {
+      state.combat.attackResults[id] = result;
+    }
+    syncVexAdvCarry();
+    save();
+    renderAll();
+  }
+
+  function toggleKill(id) {
+    ensureCombatSynced();
+    if (state.combat.kills[id]) delete state.combat.kills[id];
+    else state.combat.kills[id] = true;
+    save();
+    renderAll();
+  }
+
+  function getBonusActionCards() {
+    const w = activeWeapon();
+    const cards = [];
+
+    SPELLS.filter((s) => s.time === "bonus" && isPrepared(s.id)).forEach((spell) => {
+      const usedId = "spell:" + spell.id;
+      if (canCastSpell(spell) || state.combat.usedBonus === usedId) {
+        cards.push(makeSpellCombatCard(spell));
+      }
+    });
+
+    if (resourceRemaining("giantForm") > 0 || state.combat.usedBonus === "giantForm") {
+      cards.push({
+        id: "giantForm",
+        title: "Giant Form",
+        sub: "BA · Large · ADV STR-check · +10 ft",
+        resourceId: "giantForm",
+        onUse() { state.buffs.giantForm = true; },
+        onUndo() { state.buffs.giantForm = false; },
+      });
+    }
+
+    if (w.gwm && getActionMode() === "attack") {
+      cards.push({
+        id: "gwmBa",
+        title: "GWM · extra isku",
+        sub: gwmEligible()
+          ? `${w.short} · crit/kill · ei +PB`
+          : `${w.short} · crit tai kill Heavy-osumalla`,
+        resourceId: null,
+        onUse() {},
+        onUndo() {
+          Object.keys(state.combat.attackResults || {}).forEach((id) => {
+            if (id.includes("atk-gwm-")) delete state.combat.attackResults[id];
+          });
+        },
+      });
+    }
+
+    if (w.moonlight) {
+      cards.push({
+        id: "moonlight",
+        title: "Moonlight",
+        sub: "BA · dim light 15 ft (Moon-touched)",
+        resourceId: null,
+        onUse() { state.buffs.moonlight = true; },
+        onUndo() { state.buffs.moonlight = false; },
+      });
+    }
+
+    return cards;
+  }
+
+  function getActionSpellCards() {
+    const cards = [];
+    SPELLS.filter((s) => s.time === "action" && isPrepared(s.id)).forEach((spell) => {
+      const usedId = "spell:" + spell.id;
+      if (canCastSpell(spell) || state.combat.usedAction === usedId) {
+        cards.push(makeSpellCombatCard(spell));
+      }
+    });
+    return cards;
+  }
+
+  function getReactionCards() {
+    const cards = [];
+    if (resourceRemaining("stonesEndurance") > 0 || state.combat.usedReaction === "stonesEndurance") {
+      cards.push({
+        id: "stonesEndurance",
+        title: "Stone's Endurance",
+        sub: "Reaktio · 1d12+2 damage reduction",
+        resourceId: "stonesEndurance",
+      });
+    }
+    cards.push({
+      id: "opportunityAttack",
+      title: "Opportunity Attack",
+      sub: `1 melee-isku · to hit +${activeWeapon().ranged ? 10 : activeWeapon().toHit}`,
+      resourceId: null,
+    });
+    SPELLS.filter((s) => s.time === "reaction" && isPrepared(s.id)).forEach((spell) => {
+      const usedId = "spell:" + spell.id;
+      if (canCastSpell(spell) || state.combat.usedReaction === usedId) {
+        cards.push(makeSpellCombatCard(spell));
+      }
+    });
+    return cards;
+  }
+
+  function toggleBonusCard(card) {
+    ensureCombatSynced();
+    if (state.combat.usedBonus && state.combat.usedBonus !== card.id) return;
+
+    if (state.combat.usedBonus === card.id) {
+      if (state.combat.bonusSpentResource) {
+        unspendResourceOnce(state.combat.bonusSpentResource);
+        state.combat.bonusSpentResource = null;
+      }
+      if (card.onUndo) card.onUndo();
+      state.combat.usedBonus = null;
+    } else {
+      if (card.resourceId) {
+        if (!spendResourceOnce(card.resourceId)) return;
+        state.combat.bonusSpentResource = card.resourceId;
+      }
+      if (card.onUse) card.onUse();
+      state.combat.usedBonus = card.id;
+    }
+    save();
+    renderAll();
+  }
+
+  function toggleActionSpell(card) {
+    ensureCombatSynced();
+    if (state.combat.usedAction && state.combat.usedAction !== card.id) return;
+
+    if (state.combat.usedAction === card.id) {
+      if (state.combat.actionSpentResource) {
+        unspendResourceOnce(state.combat.actionSpentResource);
+        state.combat.actionSpentResource = null;
+      }
+      if (card.onUndo) card.onUndo();
+      state.combat.usedAction = null;
+    } else {
+      if (card.resourceId) {
+        if (!spendResourceOnce(card.resourceId)) return;
+        state.combat.actionSpentResource = card.resourceId;
+      }
+      if (card.onUse) card.onUse();
+      state.combat.usedAction = card.id;
+    }
+    save();
+    renderAll();
+  }
+
+  function toggleReactionCard(card) {
+    ensureCombatSynced();
+    if (state.combat.usedReaction && state.combat.usedReaction !== card.id) return;
+
+    if (state.combat.usedReaction === card.id) {
+      if (state.combat.reactionSpentResource) {
+        unspendResourceOnce(state.combat.reactionSpentResource);
+        state.combat.reactionSpentResource = null;
+      }
+      if (card.onUndo) card.onUndo();
+      state.combat.usedReaction = null;
+    } else {
+      if (card.resourceId) {
+        if (!spendResourceOnce(card.resourceId)) return;
+        state.combat.reactionSpentResource = card.resourceId;
+      }
+      if (card.onUse) card.onUse();
+      state.combat.usedReaction = card.id;
+    }
+    save();
+    renderAll();
+  }
+
+  function getEncounterRound() {
+    return Math.max(1, state.combat.round || 1);
+  }
+
+  function preserveEncounterTimers(nextCombat) {
+    nextCombat.round = getEncounterRound();
+    return nextCombat;
+  }
+
+  function resetCombatTurnBoard() {
+    syncVexAdvCarry();
+    const keepVex = !!state.combat.vexAdvCarry;
+    const keepMode = getActionMode();
+    const next = defaultCombat();
+    preserveEncounterTimers(next);
+    state.combat = next;
+    state.combat.vexAdvCarry = keepVex;
+    state.combat.actionMode = keepMode;
+    state.combat.fingerprint = combatFingerprint();
+  }
+
+  function clearCombatBoardHard() {
+    if (state.combat.bonusSpentResource) unspendResourceOnce(state.combat.bonusSpentResource);
+    if (state.combat.reactionSpentResource) unspendResourceOnce(state.combat.reactionSpentResource);
+    if (state.combat.actionSpentResource) unspendResourceOnce(state.combat.actionSpentResource);
+    const undoId = (id) => {
+      if (!id || !String(id).startsWith("spell:")) return;
+      const s = SPELL_BY_ID[String(id).slice(6)];
+      if (s) applySpellBuff(s, false);
+    };
+    undoId(state.combat.usedBonus);
+    undoId(state.combat.usedAction);
+    if (state.combat.usedBonus === "giantForm") state.buffs.giantForm = false;
+    if (state.combat.usedBonus === "moonlight") state.buffs.moonlight = false;
+    state.buffs.attackAction = true;
+    const next = defaultCombat();
+    preserveEncounterTimers(next);
+    state.combat = next;
+    state.combat.fingerprint = combatFingerprint();
+  }
+
+  function resetEncounterTimers() {
+    state.combat.round = 1;
+  }
+
+  function setActionMode(id) {
+    state.combat.actionMode = id;
+    save();
+    renderAll();
+  }
+
+  function renderCombat() {
+    ensureCombatSynced();
+    const root = document.getElementById("combatRoot");
+    root.innerHTML = "";
+
+    const attacks = getActionColumnAttacks();
+    const actionSpells = getActionSpellCards();
+    const gwmHit = getGwmCombatCard();
+    const bonuses = getBonusActionCards();
+    const reactions = getReactionCards();
+
+    const modeRow = document.createElement("div");
+    modeRow.className = "action-mode-row";
+    ACTION_MODES.forEach((m) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = getActionMode() === m.id ? "active" : "";
+      btn.innerHTML = `${m.label}<span class="mode-sub">${m.sub}</span>`;
+      btn.addEventListener("click", () => setActionMode(m.id));
+      modeRow.appendChild(btn);
+    });
+    root.appendChild(modeRow);
+
+    const roundBar = document.createElement("div");
+    roundBar.className = "combat-round-bar";
+    const round = getEncounterRound();
+    roundBar.innerHTML = `
+      <div class="round-controls">
+        <button type="button" class="round-btn" data-round="-1" title="Edellinen round" aria-label="Edellinen round">−</button>
+        <span class="round-label">Round <strong>${round}</strong></span>
+        <button type="button" class="round-btn" data-round="1" title="Seuraava round" aria-label="Seuraava round">+</button>
+      </div>
+      <span class="duration-chip${state.buffs.huntersMark ? " on" : ""}" title="Hunter's Mark · concentration">
+        Hunter's Mark ${state.buffs.huntersMark ? "päällä" : "—"}
+      </span>
+      <span class="duration-chip gm${state.buffs.giantForm ? " on" : ""}" title="Giant Form">
+        Giant Form ${state.buffs.giantForm ? "päällä" : "—"}
+      </span>`;
+    roundBar.querySelectorAll(".round-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const delta = Number(btn.getAttribute("data-round") || 0);
+        if (delta > 0) state.combat.round = getEncounterRound() + 1;
+        else if (delta < 0 && getEncounterRound() > 1) state.combat.round = getEncounterRound() - 1;
+        save();
+        renderAll();
+      });
+    });
+    root.appendChild(roundBar);
+
+    if (state.combat.pendingCrit) {
+      const critBanner = document.createElement("div");
+      critBanner.className = "crit-pending-banner";
+      critBanner.innerHTML = `CRITICAL valmis<span>Seuraava damage-heitto tuplaa weapon-nopat (GWM-flat ei tuplaudu)</span>`;
+      root.appendChild(critBanner);
+    }
+
+    if (state.buffs.huntersMark) {
+      const banner = document.createElement("div");
+      banner.className = "haste-active-banner";
+      banner.innerHTML = `
+        <div class="haste-active-text">
+          <strong>Hunter's Mark</strong>
+          <span>+1d6 force merkittyyn osumaan · concentration</span>
+        </div>
+        <button type="button" class="haste-dismiss" title="Poista Mark (ei palauta käyttöä)">Poista</button>`;
+      banner.querySelector(".haste-dismiss").addEventListener("click", () => {
+        state.buffs.huntersMark = false;
+        save();
+        renderAll();
+      });
+      root.appendChild(banner);
+    }
+
+    if (state.buffs.giantForm) {
+      const banner = document.createElement("div");
+      banner.className = "haste-active-banner";
+      banner.innerHTML = `
+        <div class="haste-active-text">
+          <strong>Giant Form</strong>
+          <span>Large · ADV STR-check · speed ${getWalkSpeed()} ft</span>
+        </div>
+        <button type="button" class="haste-dismiss" title="Poista Giant Form">Poista</button>`;
+      banner.querySelector(".haste-dismiss").addEventListener("click", () => {
+        state.buffs.giantForm = false;
+        save();
+        renderAll();
+      });
+      root.appendChild(banner);
+    }
+
+    function appendAttackCard(grid, card) {
+      const box = document.createElement("div");
+      box.className = "combat-card attack";
+      if (card.sourceLabel === "GWM (BA)") box.classList.add("is-dual");
+      if (card.result === "hit") box.classList.add("hit");
+      if (card.result === "miss") box.classList.add("miss");
+      if (card.hasAdv && !card.result) box.classList.add("has-adv");
+
+      const chips = (card.chips || []).map((c) => {
+        const label = c === "adv" ? "ADV" : c.charAt(0).toUpperCase() + c.slice(1);
+        return `<span class="mastery-chip ${c}">${label}</span>`;
+      }).join("");
+
+      const hitSpec = attackHitSpec(!!card.hasAdv && !card.result, card.toHit);
+      const hitLabel = card.hasAdv && !card.result
+        ? `Hit Adv +${card.toHit}`
+        : `Hit +${card.toHit}`;
+      const pending = !!state.combat.pendingCrit;
+      const dmgSpecNormal = card.damageSpec;
+      const dmgSpecCrit = card.damageSpecCrit;
+      const dmgSpec = pending ? dmgSpecCrit : dmgSpecNormal;
+      const dmgLabel = `${(card.title || "").replace(/^\d+\.\s*/, "")} dmg`;
+      const gwfNote = activeWeapon().gwf
+        ? `<div class="savage-hint">GWF: 1 ja 2 → 3 (laske heiton jälkeen)</div>`
+        : "";
+
+      let sourceBanner = "";
+      if (card.sourceLabel === "GWM (BA)") {
+        sourceBanner = `<div class="source-banner dual">Bonus Action<span>Great Weapon Master · extra isku (ei +PB)</span></div>`;
+      }
+
+      const graze = card.graze && card.result === "miss"
+        ? `<div class="graze-note">Graze: ${CHAR.grazeDamage} slashing (ability mod, ei osuma)</div>`
+        : "";
+
+      const killBtn = card.sourceLabel === "Action" && activeWeapon().gwm
+        ? `<div class="kill-row"><button type="button" class="${card.kill ? "active" : ""}" data-kill="1">Kill → GWM BA</button></div>`
+        : "";
+
+      box.innerHTML = `
+        ${sourceBanner}
+        ${card.hasAdv && !card.result ? `<div class="adv-banner">ADVANTAGE${card.advFromPrevTurn ? " · edellinen vuoro" : ""}<span class="adv-sub">2d20, valitse korkeampi</span></div>` : ""}
+        <span class="card-title">${card.title}</span>
+        <div>${chips}</div>
+        ${card.vexGranted ? `<div class="vex-granted">Vex osuma → Advantage seuraavaan lyöntiin</div>` : ""}
+        ${card.tmEffect ? `<div class="tm-effect">${card.tmEffect}</div>` : ""}
+        ${gwfNote}
+        ${graze}
+        <div class="card-roll-row">
+          <button type="button" class="roll-hit" title="${hitSpec}">${hitLabel}</button>
+          <button type="button" class="roll-dmg${pending ? " crit-pending" : ""}" title="${dmgSpec}">Dmg ${dmgSpec}${pending ? " · CRIT" : ""}</button>
+          ${card.graze && card.result === "miss" ? `<button type="button" class="roll-dmg" data-graze="1" title="${CHAR.grazeDamage}">Graze ${CHAR.grazeDamage}</button>` : ""}
+        </div>
+        <div class="hit-miss-row">
+          <button type="button" class="hm-hit${card.result === "hit" ? " active" : ""}" title="Osuma" aria-label="Osuma">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13.5 L10 19.5 L20 6.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="hm-miss${card.result === "miss" ? " active" : ""}" title="Ohi" aria-label="Ohi">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7 L17 17 M17 7 L7 17" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        ${killBtn}`;
+
+      box.querySelector(".roll-hit").addEventListener("click", (e) => {
+        e.stopPropagation();
+        rollForCard(hitSpec, `${card.title} · ${hitLabel}`);
+      });
+      box.querySelectorAll(".roll-dmg").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (btn.getAttribute("data-graze")) {
+            rollForCard(String(CHAR.grazeDamage), "Graze");
+            return;
+          }
+          const wasCrit = !!state.combat.pendingCrit;
+          const spec = wasCrit ? dmgSpecCrit : dmgSpecNormal;
+          rollForCard(spec, wasCrit ? `${dmgLabel} · CRIT` : dmgLabel);
+          if (wasCrit) consumePendingCrit();
+        });
+      });
+      box.querySelector(".hm-hit").addEventListener("click", (e) => {
+        e.stopPropagation();
+        setAttackResult(card.id, "hit");
+      });
+      box.querySelector(".hm-miss").addEventListener("click", (e) => {
+        e.stopPropagation();
+        setAttackResult(card.id, "miss");
+      });
+      const killEl = box.querySelector("[data-kill]");
+      if (killEl) {
+        killEl.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleKill(card.id);
+        });
+      }
+      grid.appendChild(box);
+    }
+
+    function section(title, cards, mode, colClass) {
+      const wrap = document.createElement("div");
+      wrap.className = `combat-section ${colClass || ""}`;
+      const h = document.createElement("h3");
+      h.textContent = title;
+      wrap.appendChild(h);
+      const grid = document.createElement("div");
+      grid.className = "card-grid";
+
+      const showGwmHit = mode === "bonus" && gwmHit;
+      if (!cards.length && !showGwmHit && mode !== "attack") {
+        const empty = document.createElement("p");
+        empty.className = "combat-status";
+        empty.textContent = "Ei vaihtoehtoja tällä setupilla / resursseilla.";
+        wrap.appendChild(empty);
+        return wrap;
+      }
+
+      if (mode === "attack") {
+        cards.forEach((card) => appendAttackCard(grid, card));
+        actionSpells.forEach((card) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          const pips = card.resourceId ? resourcePipsHtml(card.resourceId) : "";
+          btn.className = `combat-card bonus${pips ? " has-pips" : ""}`;
+          btn.innerHTML = `
+            <span class="card-title">${card.title}</span>
+            <span class="card-sub">${card.sub}</span>
+            ${pips}`;
+          const used = state.combat.usedAction;
+          if (used === card.id) btn.classList.add("done");
+          else if (used && used !== card.id) btn.classList.add("locked");
+          btn.addEventListener("click", () => toggleActionSpell(card));
+          grid.appendChild(btn);
+        });
+      } else {
+        if (showGwmHit) appendAttackCard(grid, gwmHit);
+        cards.forEach((card) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          const pips = card.resourceId ? resourcePipsHtml(card.resourceId) : "";
+          btn.className = `combat-card ${mode}${pips ? " has-pips" : ""}`;
+          btn.innerHTML = `
+            <span class="card-title">${card.title}</span>
+            <span class="card-sub">${card.sub}</span>
+            ${pips}`;
+          if (mode === "bonus") {
+            const used = state.combat.usedBonus;
+            if (used === card.id) btn.classList.add("done");
+            else if (used && used !== card.id) btn.classList.add("locked");
+            btn.addEventListener("click", () => toggleBonusCard(card));
+          } else {
+            const used = state.combat.usedReaction;
+            if (used === card.id) btn.classList.add("done");
+            else if (used && used !== card.id) btn.classList.add("locked");
+            btn.addEventListener("click", () => toggleReactionCard(card));
+          }
+          grid.appendChild(btn);
+        });
+      }
+      wrap.appendChild(grid);
+
+      const status = document.createElement("p");
+      status.className = "combat-status";
+      if (mode === "attack") {
+        const actionOnly = attacks;
+        const resolved = actionOnly.filter((c) => c.result).length;
+        const hits = actionOnly.filter((c) => c.result === "hit").length;
+        const advNext = attacks.find((c) => c.hasAdv && !c.result);
+        status.textContent = advNext
+          ? `${resolved} / ${actionOnly.length} Action · ${hits} osumaa · SEURAAVA: ADVANTAGE`
+          : `${resolved} / ${actionOnly.length} Action merkitty · ${hits} osumaa`;
+        if (state.combat.usedAction) {
+          const sp = actionSpells.find((c) => c.id === state.combat.usedAction);
+          status.textContent += ` · Loitsu: ${sp?.title || state.combat.usedAction}`;
+        }
+        if (advNext) status.style.color = "var(--good)";
+        status.style.fontWeight = advNext ? "700" : "";
+      } else if (mode === "bonus") {
+        status.textContent = state.combat.usedBonus
+          ? `Käytetty: ${bonuses.find((c) => c.id === state.combat.usedBonus)?.title || state.combat.usedBonus}`
+          : "Valitse yksi";
+      } else {
+        status.textContent = state.combat.usedReaction
+          ? `Käytetty: ${reactions.find((c) => c.id === state.combat.usedReaction)?.title || state.combat.usedReaction}`
+          : "Valitse yksi";
+      }
+      wrap.appendChild(status);
+      return wrap;
+    }
+
+    const cols = document.createElement("div");
+    cols.className = "combat-columns";
+    cols.appendChild(section(
+      actionSpells.length ? `Action (${attacks.length}) + loitsut` : `Action (${attacks.length})`,
+      attacks,
+      "attack",
+      "col-action"
+    ));
+    cols.appendChild(section(
+      gwmHit ? "Bonus Action · GWM" : "Bonus Action",
+      bonuses,
+      "bonus",
+      "col-bonus"
+    ));
+    cols.appendChild(section("Reaction", reactions, "reaction", "col-reaction"));
+    root.appendChild(cols);
+  }
+
+  function calcTurn() {
+    const w = activeWeapon();
+    const seq = getActionMode() === "attack" ? buildActionAttacks() : [];
+    if (state.combat.usedBonus === "gwmBa" && w.gwm) {
+      seq.push({ weaponId: w.id, gwmOn: false, sourceLabel: "GWM" });
+    }
+    let avg = 0;
+    seq.forEach((hit) => {
+      const parts = weaponDamageParts(w, dmgOpts({ gwmOn: !!hit.gwmOn }));
+      avg += partsAvg(parts);
+    });
+    return {
+      toHit: w.toHit,
+      crit: "20",
+      ac: state.buffs.barkskin ? Math.max(CHAR.ac, 17) : CHAR.ac,
+      speed: getTurnMoveBudget(),
+      attacks: seq.length,
+      avg: Math.round(avg * 10) / 10,
+    };
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        loadout: state.loadout,
+        prepared: state.prepared,
+        spellView: state.spellView,
+        spellTime: state.spellTime,
+        buffs: state.buffs,
+        used: state.used,
+        combat: state.combat,
+      }));
+    } catch (_) { /* ignore */ }
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data.loadout) state.loadout = normalizeLoadout(data.loadout);
+      if (Array.isArray(data.prepared)) {
+        state.prepared = data.prepared.filter((id) => SPELL_BY_ID[id] && !SPELL_BY_ID[id].always);
+        clampPrepared();
+      }
+      if (data.spellView === "cards" || data.spellView === "rows") {
+        state.spellView = data.spellView;
+      }
+      if (data.spellTime === "all" || data.spellTime === "action" || data.spellTime === "bonus" || data.spellTime === "reaction") {
+        state.spellTime = data.spellTime;
+      }
+      if (data.buffs) state.buffs = { ...defaultBuffs(), ...data.buffs };
+      if (data.used) state.used = { ...defaultUsed(), ...data.used };
+      if (data.combat) {
+        state.combat = { ...defaultCombat(), ...data.combat };
+        if (!state.combat.attackResults) state.combat.attackResults = {};
+        if (!state.combat.kills) state.combat.kills = {};
+      }
+      save();
+    } catch (_) { /* ignore */ }
+  }
+
+  function setLoadout(partial) {
+    state.loadout = normalizeLoadout({ ...state.loadout, ...partial });
+    save();
+    renderAll();
+  }
+
+  function renderLoadout() {
+    const root = document.getElementById("loadoutPanel");
+    root.innerHTML = "";
+    const L = normalizeLoadout(state.loadout);
+    const row = document.createElement("div");
+    row.className = "loadout-row";
+    const lab = document.createElement("span");
+    lab.className = "row-label";
+    lab.textContent = "Ase";
+    row.appendChild(lab);
+    const opts = document.createElement("div");
+    opts.className = "row-opts";
+    WEAPON_IDS.forEach((id) => {
+      const w = WEAPONS[id];
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "toggle weapon-card wpn-" + id + (L.main === id ? " active" : "");
+      btn.innerHTML = weaponCardHtml(id, `${w.short} · ${w.mastery}`) + weaponTipHtml(w);
+      btn.addEventListener("click", () => setLoadout({ main: id }));
+      bindTip(btn);
+      opts.appendChild(btn);
+    });
+    row.appendChild(opts);
+    root.appendChild(row);
+  }
+
+  const SPELL_LEVELS = [
+    { level: 0, title: "Cantripit" },
+    { level: 1, title: "1. taso" },
+    { level: 2, title: "2. taso" },
+    { level: 3, title: "3. taso" },
+  ];
+
+  function spellRowStatusText(spell, on) {
+    if (spell.always) return "Aina";
+    if (on) return "Valittu";
+    if (!canPrepareSpell(spell)) return "Täynnä";
+    return "Valitse";
+  }
+
+  function spellStatusText(spell, on) {
+    if (spell.always) return "Aina käytössä";
+    if (on) return "Valmisteltu";
+    if (!canPrepareSpell(spell)) {
+      if (spell.level >= 3) return "Vain 2 kolmosslottia";
+      if (spell.level === 2) return "Ei slottia (2.–3.)";
+      return "Ei slottipaikkaa";
+    }
+    return "Klikkaa valmistellaksesi";
+  }
+
+  function bindSpellPrepare(el, spell, on) {
+    if (!spell.always && !on && !canPrepareSpell(spell)) el.disabled = true;
+    el.addEventListener("click", (e) => {
+      if (e.target.closest(".spell-unprep")) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (on && !spell.always) togglePrepared(spell.id);
+        return;
+      }
+      if (spell.always || on) return;
+      togglePrepared(spell.id);
+    });
+  }
+
+  function unprepHtml(spell, on) {
+    if (!(on && !spell.always)) return "";
+    return `<span class="spell-unprep" title="Poista valmistelu" aria-label="Poista valmistelu"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3 L9 9 M9 3 L3 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>`;
+  }
+
+  function spellTipHtml(spell) {
+    const lvl = spell.level === 0 ? "Cantrip" : `${spell.level}. taso`;
+    const ritual = spell.ritual ? " · Ritual" : "";
+    const src = spell.source ? ` · ${spell.source}` : "";
+    const school = spell.school || "";
+    const up = spell.upcast
+      ? `<div class="tip-h">Upcast</div><p>${spell.upcast}</p>`
+      : "";
+    return `
+      <div class="rune-tip" role="tooltip">
+        <div class="tip-h">${spell.name}</div>
+        <p class="tip-meta">${lvl}${school ? " · " + school : ""}${ritual}${src}</p>
+        <p class="tip-meta">${timeLabel(spell.time)} · ${spell.range || "—"} · ${spell.components || "—"} · ${spell.duration || "—"}</p>
+        <p class="tip-meta">Spell attack +${CHAR.spellAttack} · Save DC ${CHAR.saveDC}</p>
+        <p>${spell.detail || spell.effect || ""}</p>
+        ${up}
+      </div>`;
+  }
+
+  function placeRuneTip(host) {
+    const tip = host.querySelector(".rune-tip");
+    if (!tip) return;
+    tip.style.visibility = "hidden";
+    tip.style.display = "block";
+    const pad = 8;
+    const rect = host.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    let left = rect.left;
+    let top = rect.bottom + 6;
+    if (left + tipRect.width > window.innerWidth - pad) {
+      left = window.innerWidth - tipRect.width - pad;
+    }
+    if (left < pad) left = pad;
+    if (top + tipRect.height > window.innerHeight - pad) {
+      top = rect.top - tipRect.height - 6;
+    }
+    if (top < pad) top = pad;
+    tip.style.left = `${Math.round(left)}px`;
+    tip.style.top = `${Math.round(top)}px`;
+    tip.style.visibility = "";
+    tip.style.display = "";
+  }
+
+  function bindTip(el) {
+    el.addEventListener("mouseenter", () => placeRuneTip(el));
+    el.addEventListener("focusin", () => placeRuneTip(el));
+  }
+
+  function bindSpellTip(el) {
+    bindTip(el);
+  }
+
+  function weaponTipHtml(w) {
+    const gwmDmg = w.strFlat + (w.gwm ? CHAR.pb : 0);
+    const dmg = `${w.diceCount}d${w.faces}+${gwmDmg} ${w.type}`;
+    const dmgPlain = `${w.diceCount}d${w.faces}+${w.strFlat} ${w.type}`;
+    const range = w.range ? ` · Range ${w.range}` : "";
+    const magic = w.magic ? `<p class="tip-meta">${w.magic}</p>` : "";
+    const notes = w.notes ? `<div class="tip-h">Feats</div><p>${w.notes}</p>` : "";
+    const dmgLine = w.gwm
+      ? `To hit +${w.toHit} · ${dmg} (GWM Attack action) · ilman GWM ${dmgPlain}`
+      : `To hit +${w.toHit} · ${dmgPlain}`;
+    return `
+      <div class="rune-tip" role="tooltip">
+        <div class="tip-h">${w.name}</div>
+        <p class="tip-meta">${w.properties || ""}${range}</p>
+        <p class="tip-meta">${dmgLine}</p>
+        ${magic}
+        <div class="tip-h">Mastery · ${w.mastery}</div>
+        <p>${w.masteryDetail || ""}</p>
+        ${notes}
+      </div>`;
+  }
+
+  function makeSpellCard(spell) {
+    const on = isPrepared(spell.id);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "toggle rune-card spell-card lvl-" + spell.level
+      + (on ? " active" : "")
+      + (spell.always ? " always" : "");
+    const lvl = spell.level === 0 ? "Cantrip" : `${spell.level}. taso`;
+    btn.innerHTML = `
+      <span class="spell-body">
+        <span class="spell-head"><span class="rune-name">${spell.name}</span>${unprepHtml(spell, on)}</span>
+        <span class="spell-status">${spellStatusText(spell, on)}</span>
+        <span class="sub">${spell.effect}${spell.source ? " · " + spell.source : ""}</span>
+      </span>
+      <span class="spell-time-bar">${timeBadgeHtml(spell.time)}</span>
+      <span class="spell-lvl-bar">${lvl}</span>
+      ${spellTipHtml(spell)}`;
+    bindSpellPrepare(btn, spell, on);
+    bindSpellTip(btn);
+    return btn;
+  }
+
+  function makeSpellRow(spell) {
+    const on = isPrepared(spell.id);
+    const row = document.createElement("div");
+    row.className = "spell-row lvl-" + spell.level
+      + (on ? " active" : "")
+      + (spell.always ? " always" : "");
+    row.style.setProperty("--accent", spell.level === 0 ? "#9aa3b2" : spell.level === 1 ? "#5ec8c5" : spell.level === 2 ? "#e0a84a" : "#b08cff");
+    const action = document.createElement("button");
+    action.type = "button";
+    action.className = "spell-row-action" + (on ? " remove" : " add");
+    if (spell.always) {
+      action.disabled = true;
+      action.textContent = "·";
+      action.title = "Aina käytössä";
+    } else if (on) {
+      action.setAttribute("aria-label", "Poista valmistelu");
+      action.title = "Poista valmistelu";
+      action.innerHTML = `<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3 L9 9 M9 3 L3 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+    } else {
+      action.textContent = "+";
+      action.setAttribute("aria-label", "Valmistele");
+      action.title = "Valmistele";
+      if (!canPrepareSpell(spell)) action.disabled = true;
+    }
+    row.innerHTML = `
+      <span class="row-name">${spell.name}</span>
+      <span class="row-status">${spellRowStatusText(spell, on)}</span>
+      <span class="row-when">${timeBadgeHtml(spell.time)}</span>
+      <span class="row-effect">${spell.effect}${spell.source ? " · " + spell.source : ""}</span>`;
+    row.appendChild(action);
+    const tipHost = document.createElement("div");
+    tipHost.className = "spell-tip-host";
+    tipHost.innerHTML = spellTipHtml(spell);
+    row.appendChild(tipHost);
+    bindSpellTip(row);
+    if (!spell.always && (on || canPrepareSpell(spell))) {
+      const go = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        togglePrepared(spell.id);
+      };
+      action.addEventListener("click", go);
+      row.addEventListener("click", (e) => {
+        if (e.target.closest(".spell-row-action")) return;
+        go(e);
+      });
+    }
+    return row;
+  }
+
+  function clearPrepared() {
+    state.prepared = [];
+    save();
+    renderAll();
+  }
+
+  function filteredSpells() {
+    const filter = state.spellFilter || "all";
+    return SPELLS.filter((s) => {
+      if (filter === "prepared") {
+        if (!isPrepared(s.id)) return false;
+      } else if (filter !== "all" && String(s.level) !== filter) {
+        return false;
+      }
+      const time = state.spellTime || "all";
+      if (time !== "all" && s.time !== time) return false;
+      return true;
+    });
+  }
+
+  function renderSpells() {
+    const root = document.getElementById("spellPanel");
+    if (!root) return;
+    root.innerHTML = "";
+
+    const meta = document.getElementById("spellMeta");
+    if (meta) {
+      meta.innerHTML = `Spell attack <strong>+${CHAR.spellAttack}</strong> · Save DC <strong>${CHAR.saveDC}</strong> · valmisteltu <strong>${preparedCount()} / ${CHAR.maxPrepared}</strong> <span style="opacity:.75">(HM + MI aina)</span>`;
+    }
+
+    const help = document.createElement("p");
+    help.className = "spell-help";
+    help.textContent = "Valmistelu seuraa slottibudjettia 4 / 3 / 2. Kolmostason loitsu tarvitsee kolmosslottia (max 2). Korkeampi slotti voi peittää alemman loitsun. HM ja Healing Word eivät vie paikkaa.";
+    root.appendChild(help);
+
+    const prepUse = preparedSlotUse(state.prepared);
+    const slotsRow = document.createElement("div");
+    slotsRow.className = "spell-slots-row";
+    [
+      { id: "slot1", label: "1st", level: 1 },
+      { id: "slot2", label: "2nd", level: 2 },
+      { id: "slot3", label: "3rd", level: 3 },
+    ].forEach((g) => {
+      const r = RESOURCES.find((x) => x.id === g.id);
+      const reserved = prepUse[g.level] || 0;
+      const left = Math.max(0, r.slots - reserved);
+      const cast = state.used[g.id] || 0;
+      const wrap = document.createElement("div");
+      wrap.className = "spell-slot-group lvl-" + g.level;
+      wrap.innerHTML = `<span class="lvl">${g.label} · <span class="used">${reserved}</span>/${r.slots} käytetty · ${left} jäljellä</span>`;
+      const pips = document.createElement("div");
+      pips.className = "spell-slot-pips";
+      for (let i = 0; i < r.slots; i++) {
+        const pip = document.createElement("span");
+        pip.className = "slot"
+          + (i < reserved ? " prep" : " free")
+          + (i < cast ? " cast" : "");
+        pip.title = i < reserved
+          ? (i < cast ? `${g.label}: valmisteltu ja heitetty` : `${g.label}: valmistelun käytössä`)
+          : `${g.label}: vapaa slotti`;
+        pips.appendChild(pip);
+      }
+      wrap.appendChild(pips);
+      slotsRow.appendChild(wrap);
+    });
+    root.appendChild(slotsRow);
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "spell-toolbar";
+
+    const filterGroups = document.createElement("div");
+    filterGroups.className = "spell-filter-groups";
+
+    const filters = document.createElement("div");
+    filters.className = "resource-filters";
+    [
+      { id: "all", label: "Kaikki" },
+      { id: "prepared", label: "Valmistellut" },
+      { id: "0", label: "Cantrip" },
+      { id: "1", label: "1st" },
+      { id: "2", label: "2nd" },
+      { id: "3", label: "3rd" },
+    ].forEach((opt) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "res-filter" + ((state.spellFilter || "all") === opt.id ? " active" : "");
+      btn.textContent = opt.label;
+      btn.addEventListener("click", () => {
+        state.spellFilter = opt.id;
+        renderSpells();
+      });
+      filters.appendChild(btn);
+    });
+    filterGroups.appendChild(filters);
+
+    const timeFilters = document.createElement("div");
+    timeFilters.className = "resource-filters";
+    timeFilters.setAttribute("aria-label", "Casting time");
+    [
+      { id: "all", label: "Kaikki ajat" },
+      { id: "action", label: "Action" },
+      { id: "bonus", label: "Bonus" },
+      { id: "reaction", label: "Reaktio" },
+    ].forEach((opt) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "res-filter" + ((state.spellTime || "all") === opt.id ? " active" : "");
+      btn.textContent = opt.label;
+      btn.addEventListener("click", () => {
+        state.spellTime = opt.id;
+        save();
+        renderSpells();
+      });
+      timeFilters.appendChild(btn);
+    });
+    filterGroups.appendChild(timeFilters);
+    toolbar.appendChild(filterGroups);
+
+    const viewToggle = document.createElement("div");
+    viewToggle.className = "spell-view-toggle";
+    viewToggle.setAttribute("role", "group");
+    viewToggle.setAttribute("aria-label", "Loitsunäkymä");
+    [
+      { id: "cards", label: "Kortit" },
+      { id: "rows", label: "Rivit" },
+    ].forEach((opt) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = (state.spellView || "cards") === opt.id ? "active" : "";
+      btn.textContent = opt.label;
+      btn.addEventListener("click", () => {
+        state.spellView = opt.id;
+        save();
+        renderSpells();
+      });
+      viewToggle.appendChild(btn);
+    });
+    toolbar.appendChild(viewToggle);
+    root.appendChild(toolbar);
+
+    const list = filteredSpells();
+    const view = state.spellView || "cards";
+
+    if (view === "rows") {
+      const filter = state.spellFilter || "all";
+      const levels = filter === "0" || filter === "1" || filter === "2" || filter === "3"
+        ? SPELL_LEVELS.filter((g) => String(g.level) === filter)
+        : SPELL_LEVELS;
+      levels.forEach((g) => {
+        const group = list.filter((s) => s.level === g.level);
+        if (!group.length) return;
+        const block = document.createElement("div");
+        block.className = "spell-level-block lvl-" + g.level;
+        const h = document.createElement("h3");
+        const prepN = countedPreparedIds(state.prepared)
+          .filter((id) => SPELL_BY_ID[id].level === g.level).length;
+        const cap = g.level >= 1
+          ? Object.entries(slotCapacity()).reduce((n, [lv, c]) => n + (Number(lv) >= g.level ? c : 0), 0)
+          : group.length;
+        h.textContent = g.level >= 1
+          ? `${g.title} · valmisteltu ${prepN}/${cap}`
+          : `${g.title} · ${group.length}`;
+        block.appendChild(h);
+        const rows = document.createElement("div");
+        rows.className = "spell-rows";
+        const head = document.createElement("div");
+        head.className = "spell-row-head";
+        head.innerHTML = `<span>Loitsu</span><span>Tila</span><span>Aika</span><span>Efekti</span><span></span>`;
+        rows.appendChild(head);
+        group.forEach((spell) => rows.appendChild(makeSpellRow(spell)));
+        block.appendChild(rows);
+        root.appendChild(block);
+      });
+      return;
+    }
+
+    const grid = document.createElement("div");
+    grid.className = "toggle-grid spell-grid";
+    list.forEach((spell) => grid.appendChild(makeSpellCard(spell)));
+    root.appendChild(grid);
+  }
+
+  function renderCalc() {
+    const result = calcTurn();
+    const combatHits = getCombatAttackCards();
+    const attacks = combatHits.length || result.attacks;
+    document.getElementById("sumToHit").textContent = `+${result.toHit}`;
+    document.getElementById("sumAttacks").textContent = String(attacks);
+    document.getElementById("sumAvg").textContent = attacks ? String(result.avg) : "—";
+    document.getElementById("sumAC").textContent = String(result.ac);
+    document.getElementById("sumCrit").textContent = result.crit;
+    document.getElementById("sumSpeed").textContent = getSpeedLabel();
+  }
+
+  function resourceEffectText(r) {
+    if (!r) return "";
+    return typeof r.effect === "function" ? r.effect() : (r.effect || "");
+  }
+
+  function filteredResources() {
+    const filter = state.resourceFilter || "all";
+    if (filter === "all") return RESOURCES.slice();
+    return RESOURCES.filter((r) => (r.source || "other") === filter);
+  }
+
+  function sortedResources() {
+    const { key, dir } = state.resourceSort || { key: "source", dir: 1 };
+    const list = filteredResources();
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (key === "name") cmp = a.name.localeCompare(b.name, "fi");
+      else if (key === "source") {
+        cmp = (RESOURCE_SOURCE_SORT[a.source] ?? 9) - (RESOURCE_SOURCE_SORT[b.source] ?? 9);
+        if (!cmp) cmp = a.name.localeCompare(b.name, "fi");
+      } else if (key === "rest") {
+        cmp = (RESOURCE_REST_SORT[a.rest] ?? 9) - (RESOURCE_REST_SORT[b.rest] ?? 9);
+        if (!cmp) cmp = a.name.localeCompare(b.name, "fi");
+      } else if (key === "effect") {
+        cmp = resourceEffectText(a).localeCompare(resourceEffectText(b), "fi");
+      } else if (key === "left") {
+        cmp = resourceRemaining(a.id) - resourceRemaining(b.id);
+        if (!cmp) cmp = a.slots - b.slots;
+        if (!cmp) cmp = a.name.localeCompare(b.name, "fi");
+      }
+      return cmp * dir;
+    });
+    return list;
+  }
+
+  function setResourceSort(key) {
+    if (!state.resourceSort) state.resourceSort = { key: "source", dir: 1 };
+    if (state.resourceSort.key === key) state.resourceSort.dir *= -1;
+    else {
+      state.resourceSort.key = key;
+      state.resourceSort.dir = 1;
+    }
+    renderResources();
+  }
+
+  function setResourceFilter(filter) {
+    state.resourceFilter = filter || "all";
+    renderResources();
+  }
+
+  function renderResources() {
+    const root = document.getElementById("resourceList");
+    root.innerHTML = "";
+    if (!state.resourceSort) state.resourceSort = { key: "source", dir: 1 };
+    if (!state.resourceFilter) state.resourceFilter = "all";
+    const sort = state.resourceSort;
+    const filter = state.resourceFilter;
+
+    const filters = document.createElement("div");
+    filters.className = "resource-filters";
+    filters.setAttribute("role", "group");
+    const filterOpts = [
+      { id: "all", label: "Kaikki", cls: "" },
+      { id: "class", label: "Class", cls: "src-class" },
+      { id: "subclass", label: "Subclass", cls: "" },
+      { id: "feat", label: "Feat", cls: "src-feat" },
+      { id: "item", label: "Item", cls: "src-item" },
+      { id: "other", label: "Muu", cls: "src-other" },
+    ];
+    filterOpts.forEach((opt) => {
+      const count = opt.id === "all"
+        ? RESOURCES.length
+        : RESOURCES.filter((r) => (r.source || "other") === opt.id).length;
+      if (opt.id !== "all" && count === 0) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "res-filter"
+        + (opt.cls ? ` ${opt.cls}` : "")
+        + (filter === opt.id ? " active" : "");
+      btn.textContent = `${opt.label} (${count})`;
+      btn.addEventListener("click", () => setResourceFilter(opt.id));
+      filters.appendChild(btn);
+    });
+    root.appendChild(filters);
+
+    const rows = sortedResources();
+    if (!rows.length) {
+      const empty = document.createElement("p");
+      empty.className = "resource-empty";
+      empty.textContent = "Ei rivejä tällä suodatuksella.";
+      root.appendChild(empty);
+      return;
+    }
+
+    const table = document.createElement("table");
+    table.className = "resource-table";
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    [
+      { key: "name", label: "Kyky" },
+      { key: "source", label: "Lähde" },
+      { key: "rest", label: "Rest" },
+      { key: "effect", label: "Vaikutus" },
+      { key: "left", label: "Käyttö" },
+    ].forEach((c) => {
+      const th = document.createElement("th");
+      th.scope = "col";
+      if (sort.key === c.key) th.classList.add("sort-active");
+      const ind = sort.key === c.key ? (sort.dir > 0 ? "▲" : "▼") : "";
+      th.innerHTML = `${c.label}${ind ? `<span class="sort-ind">${ind}</span>` : ""}`;
+      th.addEventListener("click", () => setResourceSort(c.key));
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    rows.forEach((r) => {
+      const used = state.used[r.id] || 0;
+      const restKey = RESOURCE_REST_BADGE[r.rest] ? r.rest : "lr";
+      const srcKey = RESOURCE_SOURCE_BADGE[r.source] ? r.source : "other";
+      const left = Math.max(0, r.slots - used);
+      const passive = r.id === "ringWarmth" || r.id === "wildwalkerNote";
+
+      const tr = document.createElement("tr");
+      tr.className = `rest-${restKey}`;
+
+      const tdName = document.createElement("td");
+      tdName.className = "col-name";
+      tdName.innerHTML = `<span class="name-row"><span class="name-text"></span></span>`;
+      tdName.querySelector(".name-text").textContent = r.name;
+      tr.appendChild(tdName);
+
+      const tdSrc = document.createElement("td");
+      tdSrc.innerHTML = `<span class="res-badge src-${srcKey === "subclass" ? "class" : srcKey}">${RESOURCE_SOURCE_BADGE[srcKey]}</span>`;
+      tr.appendChild(tdSrc);
+
+      const tdRest = document.createElement("td");
+      tdRest.innerHTML = `<span class="res-badge rest-${restKey}">${RESOURCE_REST_BADGE[restKey]}</span>`;
+      tr.appendChild(tdRest);
+
+      const tdEffect = document.createElement("td");
+      tdEffect.className = "col-effect";
+      tdEffect.textContent = resourceEffectText(r);
+      tr.appendChild(tdEffect);
+
+      const tdUses = document.createElement("td");
+      tdUses.className = "col-uses";
+      const slots = document.createElement("div");
+      slots.className = "slots";
+      for (let i = 0; i < r.slots; i++) {
+        const slot = document.createElement("button");
+        slot.type = "button";
+        slot.className = "slot" + (i < left ? " avail" : "");
+        slot.title = `${r.name} · ${left}/${r.slots}`;
+        slot.disabled = passive && r.id === "ringWarmth";
+        slot.addEventListener("click", () => {
+          if (r.id === "ringWarmth") return;
+          if (i < used - 1) state.used[r.id] = i + 1;
+          else if (i === used - 1) state.used[r.id] = used - 1;
+          else state.used[r.id] = i + 1;
+          if (r.id === "huntersMark" && state.used[r.id] > used) state.buffs.huntersMark = true;
+          if (r.id === "giantForm" && state.used[r.id] > used) state.buffs.giantForm = true;
+          save();
+          renderAll();
+        });
+        slots.appendChild(slot);
+      }
+      tdUses.appendChild(slots);
+      tr.appendChild(tdUses);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    root.appendChild(table);
+  }
+
+  function renderAll() {
+    renderSpells();
+    renderLoadout();
+    renderCombat();
+    renderCalc();
+    renderResources();
+  }
+
+  document.getElementById("btnNewTurn").addEventListener("click", () => {
+    state.buffs.attackAction = true;
+    resetCombatTurnBoard();
+    state.combat.round = getEncounterRound() + 1;
+    save();
+    renderAll();
+  });
+
+  document.getElementById("btnClearTurn").addEventListener("click", () => {
+    clearCombatBoardHard();
+    save();
+    renderAll();
+  });
+
+  document.getElementById("btnShortRest").addEventListener("click", () => {
+    RESOURCES.forEach((r) => {
+      if (r.rest === "sr" || r.rest === "turn" || r.rest === "round") state.used[r.id] = 0;
+    });
+    save();
+    renderAll();
+  });
+
+  document.getElementById("btnLongRest").addEventListener("click", () => {
+    state.used = defaultUsed();
+    state.buffs = defaultBuffs();
+    resetCombatTurnBoard();
+    resetEncounterTimers();
+    state.combat.vexAdvCarry = false;
+    save();
+    renderAll();
+  });
+
+  document.getElementById("btnResetBuffs").addEventListener("click", () => {
+    const keepUsed = state.used;
+    state.buffs = defaultBuffs();
+    state.used = keepUsed;
+    save();
+    renderAll();
+  });
+
+  document.getElementById("spellClear").addEventListener("click", () => {
+    clearPrepared();
+  });
+
+  load();
+  renderAll();
+})();
+
+  </script>
+  <script type="module">
+    const statusEl = document.getElementById("diceStatus");
+    const resultEl = document.getElementById("diceResult");
+    const flagEl = document.getElementById("diceFlag");
+    const toastEl = document.getElementById("diceToast");
+    const toastTotalEl = document.getElementById("diceToastTotal");
+    const toastFlagEl = document.getElementById("diceToastFlag");
+    const toastSubEl = document.getElementById("diceToastSub");
+    const subEl = document.getElementById("diceSub");
+    const dock = document.getElementById("diceDock");
+    let box = null;
+    let busy = false;
+    let toastTimer = null;
+
+    function setBusy(on) {
+      busy = on;
+      dock.querySelectorAll("button[data-roll]").forEach((b) => { b.disabled = on; });
+    }
+
+    function parseRollSpec(spec) {
+      // e.g. 1d20+10 | 2d20kh1+10 | 1d6+6
+      const m = String(spec).trim().match(/^(\d*)d(\d+)(kh1|kl1)?([+-]\d+)?$/i);
+      if (!m) return { dice: "1d20", mod: 0, keep: null, labelFaces: 20 };
+      const count = m[1] ? parseInt(m[1], 10) : 1;
+      const faces = parseInt(m[2], 10);
+      const keep = m[3] ? m[3].toLowerCase() : null;
+      const mod = m[4] ? parseInt(m[4], 10) : 0;
+      return { dice: `${count}d${faces}`, mod, keep, labelFaces: faces, count };
+    }
+
+    function critThreshold() {
+      const raw = (document.getElementById("sumCrit")?.textContent || "20").trim();
+      // "19–20" or "19-20" → 19; otherwise 20
+      const m = raw.match(/(\d+)/);
+      return m ? parseInt(m[1], 10) : 20;
+    }
+
+    function hideDiceToast() {
+      if (!toastEl) return;
+      toastEl.classList.remove("show");
+      const finish = () => {
+        toastEl.hidden = true;
+        toastEl.className = "dice-toast";
+        if (toastTotalEl) toastTotalEl.textContent = "—";
+        if (toastFlagEl) {
+          toastFlagEl.textContent = "";
+          toastFlagEl.classList.remove("show");
+        }
+        if (toastSubEl) toastSubEl.textContent = "";
+      };
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(finish, 220);
+    }
+
+    /** Always-visible result HUD over the canvas (works with dock collapsed). */
+    function showDiceToast(opts) {
+      if (!toastEl) return;
+      const { total, sub, flag, flagText } = opts;
+      if (toastTimer) clearTimeout(toastTimer);
+      toastEl.hidden = false;
+      toastEl.className = `dice-toast show${flag ? ` ${flag}` : ""}`;
+      if (toastTotalEl) toastTotalEl.textContent = String(total);
+      if (toastSubEl) toastSubEl.textContent = sub || "";
+      if (toastFlagEl) {
+        if (flag) {
+          toastFlagEl.textContent = flagText || (flag === "crit" ? "Critical!" : "Fumble!");
+          toastFlagEl.classList.add("show");
+        } else {
+          toastFlagEl.textContent = "";
+          toastFlagEl.classList.remove("show");
+        }
+      }
+      // Stay up long enough to read; crit/fumble a bit longer
+      const ms = flag ? 4500 : 3500;
+      toastTimer = setTimeout(() => hideDiceToast(), ms);
+    }
+
+    function clearDiceFlag() {
+      resultEl.classList.remove("crit", "fumble");
+      subEl.classList.remove("crit", "fumble");
+      flagEl.hidden = true;
+      flagEl.className = "dice-flag";
+      flagEl.textContent = "";
+    }
+
+    function summarize(values, keep, mod, label, faces) {
+      let used = values.slice();
+      let note = values.join(" + ");
+      if (keep === "kh1") {
+        used = [Math.max(...values)];
+        note = `korkein ${used[0]} (${values.join(", ")})`;
+      } else if (keep === "kl1") {
+        used = [Math.min(...values)];
+        note = `matalin ${used[0]} (${values.join(", ")})`;
+      }
+      const total = used.reduce((a, b) => a + b, 0) + mod;
+      const modStr = mod ? (mod > 0 ? `+${mod}` : `${mod}`) : "";
+      const nat = used.length === 1 ? used[0] : null;
+
+      clearDiceFlag();
+      resultEl.textContent = String(total);
+
+      let flag = null;
+      if (faces === 20 && nat != null) {
+        const thr = critThreshold();
+        if (nat === 1) flag = "fumble";
+        else if (nat >= thr) flag = "crit";
+      }
+
+      let subText;
+      let flagText = "";
+      if (flag === "crit") {
+        resultEl.classList.add("crit");
+        subEl.classList.add("crit");
+        flagEl.hidden = false;
+        flagEl.className = "dice-flag show crit";
+        flagText = nat >= 20 ? "Critical!" : `Critical! (nat ${nat})`;
+        flagEl.textContent = flagText;
+        subText = `${label}: nat ${nat} · CRIT · ${note}${modStr ? " " + modStr : ""} = ${total}`;
+        subEl.textContent = subText;
+      } else if (flag === "fumble") {
+        resultEl.classList.add("fumble");
+        subEl.classList.add("fumble");
+        flagEl.hidden = false;
+        flagEl.className = "dice-flag show fumble";
+        flagText = "Fumble!";
+        flagEl.textContent = flagText;
+        subText = `${label}: nat 1 · FUMBLE · ${note}${modStr ? " " + modStr : ""} = ${total}`;
+        subEl.textContent = subText;
+      } else {
+        subText = `${label}: ${note}${modStr ? " " + modStr : ""} = ${total}`;
+        subEl.textContent = subText;
+      }
+
+      showDiceToast({ total, sub: subText, flag, flagText });
+
+      // Crit arms next damage roll; non-crit / fumble clears it
+      if (faces === 20 && typeof window.kaelanOnToHitFlag === "function") {
+        window.kaelanOnToHitFlag(flag);
+      }
+
+      return total;
+    }
+
+    function fallbackRoll(spec, label) {
+      const { dice, mod, keep, count, labelFaces } = parseRollSpec(spec);
+      const n = count || 1;
+      const faces = labelFaces;
+      const values = Array.from({ length: n }, () => 1 + Math.floor(Math.random() * faces));
+      summarize(values, keep, mod, label, faces);
+      statusEl.textContent = "Fallback (ei 3D) — heitetty";
+      statusEl.classList.remove("err");
+    }
+
+    const DICE_COLOR_KEY = "makhal-dice-color";
+    const DICE_THEME_KEY = "makhal-dice-theme";
+    const THEMES_CDN = "https://cdn.jsdelivr.net/npm/@3d-dice/dice-themes@0.2.1/themes";
+    const EXTERNAL_THEMES = {
+      smooth: `${THEMES_CDN}/smooth`,
+      rust: `${THEMES_CDN}/rust`,
+      rock: `${THEMES_CDN}/rock`,
+      diceOfRolling: `${THEMES_CDN}/diceOfRolling`,
+      wooden: `${THEMES_CDN}/wooden`,
+    };
+    const COLORABLE_THEMES = new Set(["default", "smooth", "rust", "rock"]);
+    const KNOWN_THEMES = new Set(["default", ...Object.keys(EXTERNAL_THEMES)]);
+    const themeSelect = document.getElementById("diceTheme");
+    const colorPicker = document.getElementById("diceColorPicker");
+    const swatches = document.getElementById("diceSwatches");
+
+    function diceBoxConfig(theme, color) {
+      return {
+        assetPath: "assets/",
+        origin: "https://cdn.jsdelivr.net/npm/@3d-dice/dice-box@1.1.4/dist/",
+        scale: 6,
+        theme: theme || "default",
+        themeColor: color || "#8bb8c9",
+        externalThemes: EXTERNAL_THEMES,
+        gravity: 2,
+        friction: 0.8,
+        restitution: 0.4,
+        startingHeight: 12,
+        throwForce: 4,
+        spinForce: 5,
+      };
+    }
+
+    /** Match WebGL buffer to viewport 1:1 — never rely on CSS stretch (that elongates dice). */
+    function syncCanvasBuffer() {
+      if (!box || !box.canvas) return;
+      const canvas = box.canvas;
+      const w = Math.max(1, Math.round(window.innerWidth));
+      const h = Math.max(1, Math.round(window.innerHeight));
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      canvas.style.maxWidth = "none";
+      canvas.style.maxHeight = "none";
+      canvas.style.objectFit = "unset";
+      try {
+        if (canvas.width !== w) canvas.width = w;
+        if (canvas.height !== h) canvas.height = h;
+      } catch (_) { /* after offscreen transfer, attributes are locked */ }
+    }
+
+    function forceDiceResize() {
+      if (!box) return;
+      syncCanvasBuffer();
+      if (typeof box.resizeWorld === "function") {
+        try { box.resizeWorld(); } catch (_) { /* ignore */ }
+      }
+    }
+
+    /** Ensure size is correct the instant dice-box transfers the canvas offscreen. */
+    function installOffscreenSizeHook() {
+      const proto = HTMLCanvasElement.prototype;
+      if (proto.__makhalSizeHook) return;
+      const orig = proto.transferControlToOffscreen;
+      if (typeof orig !== "function") return;
+      proto.transferControlToOffscreen = function transferControlToOffscreenPatched() {
+        const w = Math.max(1, Math.round(window.innerWidth));
+        const h = Math.max(1, Math.round(window.innerHeight));
+        this.width = w;
+        this.height = h;
+        this.style.width = `${w}px`;
+        this.style.height = `${h}px`;
+        this.style.maxWidth = "none";
+        this.style.maxHeight = "none";
+        return orig.call(this);
+      };
+      proto.__makhalSizeHook = true;
+    }
+
+    let DiceBoxCtor = null;
+    async function loadDiceBoxCtor() {
+      if (DiceBoxCtor) return DiceBoxCtor;
+      const mod = await import(
+        "https://cdn.jsdelivr.net/npm/@3d-dice/dice-box@1.1.4/dist/dice-box.es.min.js"
+      );
+      DiceBoxCtor = mod.default;
+      return DiceBoxCtor;
+    }
+
+    /** Full rebuild — theme swaps with custom meshes need a fresh box for correct aspect. */
+    async function createDiceBox(theme, color) {
+      const container = document.getElementById("dice-box");
+      if (box) {
+        try { if (typeof box.clear === "function") box.clear(); } catch (_) { /* ignore */ }
+        box = null;
+      }
+      if (container) container.innerHTML = "";
+      installOffscreenSizeHook();
+      const DiceBox = await loadDiceBoxCtor();
+      box = new DiceBox("#dice-box", diceBoxConfig(theme, color));
+      syncCanvasBuffer();
+      await box.init();
+      syncCanvasBuffer();
+      forceDiceResize();
+      requestAnimationFrame(() => {
+        forceDiceResize();
+        requestAnimationFrame(forceDiceResize);
+      });
+      return box;
+    }
+
+    function loadDicePrefs() {
+      let color = "#8bb8c9";
+      let theme = "default";
+      try {
+        color = localStorage.getItem(DICE_COLOR_KEY) || color;
+        theme = localStorage.getItem(DICE_THEME_KEY) || theme;
+      } catch (_) { /* ignore */ }
+      if (!KNOWN_THEMES.has(theme)) theme = "default";
+      return { color, theme };
+    }
+
+    function saveDicePrefs(color, theme) {
+      try {
+        if (color) localStorage.setItem(DICE_COLOR_KEY, color);
+        if (theme) localStorage.setItem(DICE_THEME_KEY, theme);
+      } catch (_) { /* ignore */ }
+    }
+
+    function syncSwatchUI(color) {
+      colorPicker.value = color;
+      swatches.querySelectorAll(".dice-swatch[data-color]").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.color.toLowerCase() === color.toLowerCase());
+      });
+      const preset = [...swatches.querySelectorAll(".dice-swatch[data-color]")]
+        .some((b) => b.dataset.color.toLowerCase() === color.toLowerCase());
+      document.getElementById("diceCustomSwatch").classList.toggle("active", !preset);
+    }
+
+    function syncColorControls(theme) {
+      const canColor = COLORABLE_THEMES.has(theme);
+      swatches.style.opacity = canColor ? "1" : "0.45";
+      swatches.style.pointerEvents = canColor ? "" : "none";
+      colorPicker.disabled = !canColor;
+    }
+
+    async function applyDiceStyle({ color, theme } = {}) {
+      const prefs = loadDicePrefs();
+      const nextColor = color || prefs.color;
+      const nextTheme = theme || prefs.theme;
+      const themeChanged = Boolean(theme) && theme !== prefs.theme;
+      saveDicePrefs(nextColor, nextTheme);
+      syncSwatchUI(nextColor);
+      themeSelect.value = nextTheme;
+      syncColorControls(nextTheme);
+      if (!box && !themeChanged) return;
+      try {
+        if (themeChanged || !box) {
+          // Custom-mesh themes need a fresh box or dice stretch
+          await createDiceBox(nextTheme, nextColor);
+        } else if (typeof box.updateConfig === "function") {
+          await box.updateConfig({ themeColor: nextColor });
+          forceDiceResize();
+        }
+        statusEl.textContent = COLORABLE_THEMES.has(nextTheme)
+          ? "Tyyli päivitetty"
+          : "Tekstuuri päivitetty (kiinteä väri)";
+        statusEl.classList.remove("err");
+      } catch (err) {
+        console.warn("theme update failed, reverting to default", err);
+        try {
+          themeSelect.value = "default";
+          saveDicePrefs(nextColor, "default");
+          syncColorControls("default");
+          await createDiceBox("default", nextColor);
+          statusEl.textContent = "Tekstuuri ei latautunut — default + väri";
+          statusEl.classList.add("err");
+        } catch (e2) {
+          statusEl.textContent = "Tyylin vaihto epäonnistui";
+          statusEl.classList.add("err");
+        }
+      }
+    }
+
+    async function initDice() {
+      const prefs = loadDicePrefs();
+      syncSwatchUI(prefs.color);
+      themeSelect.value = prefs.theme;
+      syncColorControls(prefs.theme);
+      try {
+        await createDiceBox(prefs.theme, prefs.color);
+        window.addEventListener("resize", forceDiceResize);
+        const c = box && box.canvas;
+        const mismatch = c && Math.abs(c.width / c.height - c.clientWidth / c.clientHeight) > 0.03;
+        if (mismatch) {
+          statusEl.textContent = `Canvas-suhde pieleen (${c.width}×${c.height} / ${c.clientWidth}×${c.clientHeight})`;
+          statusEl.classList.add("err");
+        } else {
+          statusEl.textContent = "Valmis — heitä!";
+          statusEl.classList.remove("err");
+        }
+      } catch (err) {
+        console.warn("DiceBox init failed", err);
+        if (prefs.theme !== "default") {
+          try {
+            saveDicePrefs(prefs.color, "default");
+            themeSelect.value = "default";
+            syncColorControls("default");
+            await createDiceBox("default", prefs.color);
+            window.addEventListener("resize", forceDiceResize);
+            statusEl.textContent = "Valmis (default-tekstuuri)";
+            statusEl.classList.remove("err");
+            return;
+          } catch (e2) {
+            console.warn(e2);
+          }
+        }
+        box = null;
+        statusEl.textContent = "3D ei latautunut — käytetään fallbackia";
+        statusEl.classList.add("err");
+      }
+    }
+
+    function extractDieValues(results) {
+      const values = [];
+      const pushDie = (r) => {
+        if (r == null) return;
+        if (typeof r === "number" && Number.isFinite(r)) {
+          values.push(r);
+          return;
+        }
+        if (typeof r === "object") {
+          const v = r.result ?? r.value;
+          if (typeof v === "number" && Number.isFinite(v)) values.push(v);
+        }
+      };
+      if (Array.isArray(results)) {
+        results.forEach((item) => {
+          // Grouped roll-result: { rolls: [...], value }
+          if (item && Array.isArray(item.rolls)) {
+            item.rolls.forEach(pushDie);
+          } else {
+            // Individual die result from box.roll(): { result, sides, ... }
+            pushDie(item);
+          }
+        });
+        return values;
+      }
+      if (results && typeof results === "object") {
+        const flat = results.rolls || results.dice;
+        if (Array.isArray(flat)) flat.forEach(pushDie);
+      }
+      return values;
+    }
+
+    async function doRoll(spec, label) {
+      if (busy) return;
+      const parsed = parseRollSpec(spec);
+      if (!box) {
+        fallbackRoll(spec, label);
+        return;
+      }
+      setBusy(true);
+      statusEl.textContent = "Heitetään…";
+      statusEl.classList.remove("err");
+      try {
+        forceDiceResize();
+        const results = await box.roll(parsed.dice);
+        let values = extractDieValues(results);
+        // Prefer grouped results when available (same settle)
+        if ((!values.length || values.length < (parsed.count || 1))
+            && box && typeof box.getRollResults === "function") {
+          const grouped = extractDieValues(box.getRollResults());
+          if (grouped.length) values = grouped;
+        }
+        if (!values.length) {
+          fallbackRoll(spec, label);
+        } else {
+          summarize(values.map(Number), parsed.keep, parsed.mod, label, parsed.labelFaces);
+          statusEl.textContent = "Valmis";
+        }
+      } catch (err) {
+        console.warn(err);
+        fallbackRoll(spec, label);
+        statusEl.textContent = "3D-virhe — fallback";
+        statusEl.classList.add("err");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    dock.querySelectorAll("button[data-roll]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        let spec = btn.dataset.roll;
+        let label = btn.dataset.label || btn.textContent;
+        const parsed = parseRollSpec(spec);
+        // Dock damage presets: apply pending crit (not d20)
+        if (parsed.labelFaces !== 20 && typeof window.kaelanConsumePendingCrit === "function"
+            && window.kaelanHasPendingCrit && window.kaelanHasPendingCrit()) {
+          window.kaelanConsumePendingCrit();
+          spec = String(spec).replace(/(\d*)d(\d+)/gi, (_, n, f) => {
+            const c = n === "" || n == null ? 1 : parseInt(n, 10);
+            return `${c * 2}d${f}`;
+          });
+          label = `${label} · CRIT`;
+        }
+        doRoll(spec, label);
+      });
+    });
+    document.getElementById("diceClear").addEventListener("click", () => {
+      if (box && typeof box.clear === "function") box.clear();
+      clearDiceFlag();
+      hideDiceToast();
+      resultEl.textContent = "—";
+      subEl.textContent = "3D-heitto sheetin päällä";
+      statusEl.textContent = box ? "Valmis — heitä!" : "Fallback-tila";
+      statusEl.classList.toggle("err", !box);
+    });
+
+    const toggleBtn = document.getElementById("diceToggle");
+    const DICE_COLLAPSE_KEY = "makhal-dice-collapsed";
+    function setDiceCollapsed(collapsed) {
+      dock.classList.toggle("collapsed", collapsed);
+      toggleBtn.textContent = collapsed ? "+" : "−";
+      toggleBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      toggleBtn.title = collapsed ? "Näytä nopat" : "Piilota nopat";
+      try { localStorage.setItem(DICE_COLLAPSE_KEY, collapsed ? "1" : "0"); } catch (_) { /* ignore */ }
+    }
+    toggleBtn.addEventListener("click", () => {
+      setDiceCollapsed(!dock.classList.contains("collapsed"));
+    });
+    try {
+      if (localStorage.getItem(DICE_COLLAPSE_KEY) === "1") setDiceCollapsed(true);
+    } catch (_) { /* ignore */ }
+
+    swatches.querySelectorAll(".dice-swatch[data-color]").forEach((btn) => {
+      btn.addEventListener("click", () => applyDiceStyle({ color: btn.dataset.color }));
+    });
+    document.getElementById("diceCustomSwatch").addEventListener("click", () => {
+      colorPicker.click();
+    });
+    colorPicker.addEventListener("input", () => {
+      applyDiceStyle({ color: colorPicker.value });
+    });
+    themeSelect.addEventListener("change", () => {
+      applyDiceStyle({ theme: themeSelect.value });
+    });
+
+    window.kaelanDice = {
+      roll: (spec, label) => doRoll(spec, label),
+      expand: () => setDiceCollapsed(false),
+      clear: () => {
+        if (box && typeof box.clear === "function") box.clear();
+      },
+      setStyle: (opts) => applyDiceStyle(opts),
+    };
+
+    initDice();
+  </script>
+</body>
+</html>

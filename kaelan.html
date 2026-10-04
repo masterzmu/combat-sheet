@@ -1,0 +1,4854 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <title>Kaelan — Combat Tool (L9)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Source+Sans+3:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #12151a;
+      --bg2: #1a1f27;
+      --bg3: #232a35;
+      --border: #2e3848;
+      --text: #e8edf5;
+      --muted: #8b98ab;
+      --accent: #4ea1ff;
+      --good: #3ecf8e;
+      --warn: #f0b429;
+      --danger: #ef6b6b;
+      --fire: #ff7a3d;
+      --war: #c9a227;
+      --stone: #9aa3b2;
+      --cloud: #7eb8e8;
+      --journey: #a78bfa;
+      --light: #f0d878;
+      --veil: #7a8aa8;
+      --ss: #4ea1ff;
+      --dg: #ef8f6b;
+      --ls: #9ad07a;
+      --radius: 10px;
+      --font-display: "Cinzel", "Palatino Linotype", Palatino, serif;
+      --font-body: "Cormorant Garamond", "Palatino Linotype", Palatino, serif;
+      --font-ui: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 17px;
+      line-height: 1.4;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .sticky {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background:
+        linear-gradient(180deg,
+          color-mix(in srgb, var(--accent) 8%, #0e1218) 0%,
+          rgba(14, 18, 24, 0.96) 100%);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+      padding: 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .sticky-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.85rem 1rem 1rem;
+    }
+
+    .sticky-row {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 0.45rem;
+      width: 100%;
+    }
+    @media (max-width: 420px) {
+      .sticky-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      min-width: 0;
+      padding: 0.45rem 0.55rem;
+      border-radius: 9px;
+      background: color-mix(in srgb, var(--bg3) 80%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+    }
+    .stat .label {
+      font-family: var(--font-display);
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stat .value {
+      font-family: var(--font-ui);
+      font-size: 1.25rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .stat .value.accent { color: var(--accent); }
+    .stat .value.good { color: var(--good); }
+    .stat .value.warn { color: var(--warn); }
+    .stat.to-hit {
+      border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg3));
+    }
+    .stat.attacks {
+      border-color: color-mix(in srgb, var(--good) 40%, var(--border));
+      background: color-mix(in srgb, var(--good) 12%, var(--bg3));
+    }
+    .stat.avg {
+      border-color: color-mix(in srgb, var(--warn) 40%, var(--border));
+      background: color-mix(in srgb, var(--warn) 12%, var(--bg3));
+    }
+
+    .title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .title-bar .identity {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      min-width: 0;
+    }
+    .title-bar .eyebrow {
+      font-family: var(--font-display);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--accent) 70%, var(--muted));
+    }
+    .title-bar h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      line-height: 1.15;
+    }
+    .title-bar .subtitle {
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .title-bar a {
+      flex-shrink: 0;
+      font-family: var(--font-ui);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 650;
+      text-decoration: none;
+      padding: 0.35rem 0.6rem;
+      border-radius: 7px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+    .title-bar a:hover {
+      background: color-mix(in srgb, var(--accent) 20%, transparent);
+      border-color: var(--accent);
+    }
+
+    main {
+      padding: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    section.panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    section.panel h2 {
+      margin: 0 0 0.75rem;
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .preset-row, .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    button, .toggle {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.55rem 0.85rem;
+      font-family: var(--font-ui);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      user-select: none;
+    }
+    button:hover, .toggle:hover { border-color: var(--accent); }
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0b1220;
+    }
+    button.ghost { background: transparent; color: var(--muted); }
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .toggle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.5rem;
+      overflow: visible;
+    }
+    .toggle.active {
+      background: color-mix(in srgb, var(--accent) 28%, var(--bg3));
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+    .toggle.active.fire { --accent: var(--fire); }
+    .toggle.active.war { --accent: var(--war); }
+    .toggle.active.gm { --accent: var(--good); }
+    .toggle.active.cloud { --accent: var(--cloud); }
+    .toggle.active.stone { --accent: var(--stone); }
+    .toggle.active.journey { --accent: var(--journey); }
+    .toggle.active.light { --accent: var(--light); }
+    .toggle.active.veil { --accent: var(--veil); }
+    .toggle.rune-card.fire { --accent: var(--fire); }
+    .toggle.rune-card.war { --accent: var(--war); }
+    .toggle.rune-card.cloud { --accent: var(--cloud); }
+    .toggle.rune-card.stone { --accent: var(--stone); }
+    .toggle.rune-card.journey { --accent: var(--journey); }
+    .toggle.rune-card.light { --accent: var(--light); }
+    .toggle.rune-card.veil { --accent: var(--veil); }
+    .toggle.rune-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.15rem;
+      min-height: 6.2rem;
+      padding: 0.65rem 0.75rem 0.7rem;
+      text-align: left;
+      position: relative;
+      overflow: visible;
+      z-index: 1;
+    }
+    .toggle.rune-card:hover,
+    .toggle.rune-card:focus-within {
+      z-index: 30;
+    }
+    .rune-tip {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: min(22rem, calc(100vw - 1.5rem));
+      max-width: calc(100vw - 1.5rem);
+      padding: 0.7rem 0.8rem;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--accent, var(--war)) 45%, var(--border));
+      background: color-mix(in srgb, var(--bg) 94%, #000);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+      text-align: left;
+      pointer-events: none;
+      z-index: 200;
+      box-sizing: border-box;
+    }
+    .toggle.rune-card:hover .rune-tip,
+    .toggle.rune-card:focus-within .rune-tip {
+      display: block;
+    }
+    .rune-tip .tip-h {
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent, var(--war));
+      margin: 0 0 0.35rem;
+    }
+    .rune-tip p + .tip-h {
+      margin-top: 0.9rem;
+    }
+    .rune-tip p {
+      margin: 0;
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      line-height: 1.4;
+      color: #d5deea;
+      font-style: normal;
+    }
+    .rune-tip .tip-meta {
+      color: var(--muted);
+      font-size: 0.72rem;
+      margin: 0.15rem 0 0.25rem;
+    }
+    .rune-glyph {
+      width: 1.85rem;
+      height: 2.35rem;
+      margin-bottom: 0.2rem;
+      color: color-mix(in srgb, var(--muted) 85%, #fff);
+      flex-shrink: 0;
+    }
+    .rune-glyph svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+    .toggle.active .rune-glyph {
+      color: var(--accent);
+      filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 55%, transparent));
+    }
+    .toggle.rune-card .rune-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+    }
+    .toggle.rune-card .sub {
+      align-self: stretch;
+      text-align: left;
+    }
+    .toggle.locked {
+      outline: 2px dashed var(--warn);
+      outline-offset: -2px;
+    }
+    .toggle .sub {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+    .toggle.active .sub { color: color-mix(in srgb, #fff 70%, var(--muted)); }
+
+    .group-label {
+      grid-column: 1 / -1;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .calc-grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+    @media (min-width: 720px) {
+      .calc-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .formula {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #c8d4e6;
+    }
+
+    .seq-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .seq-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.45rem 0.6rem;
+      background: var(--bg);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .seq-list .n {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 1.5rem;
+    }
+    .seq-list .dmg {
+      color: var(--good);
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .note {
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-style: italic;
+      margin: 0.5rem 0 0;
+    }
+    .note.warn { color: var(--warn); }
+
+    .resource-list {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .resource-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin: 0 0 0.65rem;
+    }
+    .resource-filters .res-filter {
+      appearance: none;
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.32rem 0.55rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .resource-filters .res-filter:hover {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    }
+    .resource-filters .res-filter.active {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+      background: color-mix(in srgb, var(--accent) 16%, var(--bg3));
+    }
+    .resource-filters .res-filter.active.src-class {
+      border-color: color-mix(in srgb, var(--journey) 55%, var(--border));
+      background: color-mix(in srgb, var(--journey) 16%, var(--bg3));
+    }
+    .resource-filters .res-filter.active.src-rune {
+      border-color: color-mix(in srgb, var(--cloud) 55%, var(--border));
+      background: color-mix(in srgb, var(--cloud) 16%, var(--bg3));
+    }
+    .resource-filters .res-filter.active.src-feat {
+      border-color: color-mix(in srgb, var(--good) 55%, var(--border));
+      background: color-mix(in srgb, var(--good) 16%, var(--bg3));
+    }
+    .resource-filters .res-filter.active.src-item {
+      border-color: color-mix(in srgb, var(--fire) 55%, var(--border));
+      background: color-mix(in srgb, var(--fire) 16%, var(--bg3));
+    }
+    .resource-filters .res-filter.active.src-other {
+      border-color: var(--border);
+      background: var(--bg3);
+    }
+    .resource-empty {
+      margin: 0.5rem 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+    .rune-count {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 0.5rem;
+    }
+    .rune-count.full { color: var(--warn); }
+    .resource-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+    }
+    .resource-table th,
+    .resource-table td {
+      padding: 0.5rem 0.55rem;
+      text-align: left;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border);
+    }
+    .resource-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--bg2);
+      font-family: var(--font-display);
+      font-size: 0.68rem;
+      font-weight: 650;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+    }
+    .resource-table thead th:hover {
+      color: var(--text);
+    }
+    .resource-table thead th.sort-active {
+      color: color-mix(in srgb, var(--accent) 80%, var(--text));
+    }
+    .resource-table thead th .sort-ind {
+      margin-left: 0.25rem;
+      opacity: 0.85;
+    }
+    .resource-table tbody tr:hover td {
+      background: color-mix(in srgb, var(--accent) 6%, var(--bg));
+    }
+    .resource-table tr.inactive-rune {
+      opacity: 0.4;
+    }
+    .resource-table tr.inactive-rune .slots {
+      pointer-events: none;
+    }
+    .resource-table .col-name {
+      font-family: var(--font-display);
+      font-weight: 650;
+      font-size: 0.9rem;
+      letter-spacing: 0.03em;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .resource-table .col-name .name-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .resource-table .col-name .res-glyph {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.15rem;
+      height: 1.4rem;
+      flex-shrink: 0;
+      color: var(--muted);
+    }
+    .resource-table .col-name .res-glyph.is-empty {
+      visibility: hidden;
+    }
+    .resource-table .col-name .res-glyph svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .resource-table .col-name .name-text {
+      min-width: 0;
+    }
+    .resource-table tr.rune-fire:not(.inactive-rune) .res-glyph { color: var(--fire); }
+    .resource-table tr.rune-stone:not(.inactive-rune) .res-glyph { color: var(--stone); }
+    .resource-table tr.rune-war:not(.inactive-rune) .res-glyph { color: var(--war); }
+    .resource-table tr.rune-journey:not(.inactive-rune) .res-glyph { color: var(--journey); }
+    .resource-table tr.rune-cloud:not(.inactive-rune) .res-glyph { color: var(--cloud); }
+    .resource-table tr.rune-light:not(.inactive-rune) .res-glyph { color: var(--light); }
+    .resource-table tr.rune-lostVeil:not(.inactive-rune) .res-glyph { color: var(--veil); }
+    .resource-table tr.rune-runicShield .res-glyph { color: var(--journey); }
+    .resource-table .col-effect {
+      color: color-mix(in srgb, var(--text) 75%, var(--muted));
+      line-height: 1.35;
+      min-width: 12rem;
+    }
+    .resource-table .col-effect .inactive-note {
+      color: var(--muted);
+      font-style: italic;
+    }
+    .resource-table .col-uses {
+      white-space: nowrap;
+    }
+    .resource-table .col-uses .slots {
+      justify-content: flex-start;
+    }
+    .res-badge {
+      display: inline-block;
+      padding: 0.12rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.62rem;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1.2;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .res-badge.rest-lr {
+      color: color-mix(in srgb, var(--war) 85%, #fff);
+      border-color: color-mix(in srgb, var(--war) 50%, var(--border));
+      background: color-mix(in srgb, var(--war) 18%, var(--bg3));
+    }
+    .res-badge.rest-sr {
+      color: color-mix(in srgb, var(--accent) 85%, #fff);
+      border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+      background: color-mix(in srgb, var(--accent) 16%, var(--bg3));
+    }
+    .res-badge.rest-dawn {
+      color: color-mix(in srgb, var(--veil) 90%, #fff);
+      border-color: color-mix(in srgb, var(--veil) 50%, var(--border));
+      background: color-mix(in srgb, var(--veil) 18%, var(--bg3));
+    }
+    .res-badge.rest-turn,
+    .res-badge.rest-round {
+      color: color-mix(in srgb, var(--warn) 85%, #fff);
+      border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+      background: color-mix(in srgb, var(--warn) 16%, var(--bg3));
+    }
+    .res-badge.src-class {
+      color: color-mix(in srgb, var(--journey) 85%, #fff);
+      border-color: color-mix(in srgb, var(--journey) 45%, var(--border));
+      background: color-mix(in srgb, var(--journey) 14%, var(--bg3));
+    }
+    .res-badge.src-rune {
+      color: color-mix(in srgb, var(--cloud) 90%, #fff);
+      border-color: color-mix(in srgb, var(--cloud) 50%, var(--border));
+      background: color-mix(in srgb, var(--cloud) 16%, var(--bg3));
+    }
+    .res-badge.src-feat {
+      color: color-mix(in srgb, var(--good) 85%, #fff);
+      border-color: color-mix(in srgb, var(--good) 45%, var(--border));
+      background: color-mix(in srgb, var(--good) 14%, var(--bg3));
+    }
+    .res-badge.src-item {
+      color: color-mix(in srgb, var(--fire) 85%, #fff);
+      border-color: color-mix(in srgb, var(--fire) 45%, var(--border));
+      background: color-mix(in srgb, var(--fire) 14%, var(--bg3));
+    }
+    .res-badge.src-other {
+      color: var(--muted);
+      border-color: var(--border);
+      background: var(--bg3);
+    }
+    .slots {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+    .slot {
+      width: 1.55rem;
+      height: 1.55rem;
+      border-radius: 5px;
+      border: 2px solid color-mix(in srgb, var(--border) 85%, transparent);
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      opacity: 0.55;
+    }
+    /* Täytetty = jäljellä (sama logiikka kuin combat card-pips) */
+    .slot.avail {
+      opacity: 1;
+      background: color-mix(in srgb, var(--good) 70%, #fff);
+      border-color: color-mix(in srgb, var(--good) 80%, #fff);
+    }
+    .slot.per-turn.avail {
+      background: color-mix(in srgb, var(--warn) 75%, #fff);
+      border-color: color-mix(in srgb, var(--warn) 85%, #fff);
+    }
+    .resource-table tr.rest-lr .slot.avail {
+      background: color-mix(in srgb, var(--war) 70%, #fff);
+      border-color: color-mix(in srgb, var(--war) 80%, #fff);
+    }
+    .resource-table tr.rest-sr .slot.avail {
+      background: color-mix(in srgb, var(--accent) 70%, #fff);
+      border-color: color-mix(in srgb, var(--accent) 80%, #fff);
+    }
+    .resource-table tr.rest-dawn .slot.avail {
+      background: color-mix(in srgb, var(--veil) 70%, #fff);
+      border-color: color-mix(in srgb, var(--veil) 80%, #fff);
+    }
+
+    .weapon-select {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .weapon-select .toggle { min-width: 7.5rem; }
+
+    .loadout-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-bottom: 0.75rem;
+    }
+    .loadout-row {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 0.45rem;
+      align-items: center;
+      min-width: 0;
+    }
+    .loadout-row .row-label {
+      min-width: 4.5rem;
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .loadout-row .row-opts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+    @media (min-width: 860px) {
+      .loadout-grid {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0.85rem;
+      }
+      .loadout-row {
+        flex: 1 1 0;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+      }
+      .loadout-row .row-label {
+        min-width: 0;
+      }
+      .loadout-row .row-opts {
+        flex: 0 1 auto;
+        width: 100%;
+      }
+    }
+    .toggle.weapon-card {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      min-width: 5.4rem;
+      min-height: 4.4rem;
+      padding: 0.45rem 0.55rem 0.5rem;
+      text-align: center;
+      position: relative;
+      opacity: 0.42;
+      filter: grayscale(0.55);
+      border-color: var(--border);
+      background: var(--bg3);
+      box-shadow: none;
+    }
+    .toggle.weapon-card.wpn-shortsword { --wpn: var(--ss); }
+    .toggle.weapon-card.wpn-dagger { --wpn: var(--dg); }
+    .toggle.weapon-card.wpn-longsword { --wpn: var(--ls); }
+    .toggle.weapon-card.wpn-empty { --wpn: var(--muted); }
+    .toggle.weapon-card.wpn-grip1h { --wpn: #c5d0e0; }
+    .toggle.weapon-card.wpn-grip2h { --wpn: var(--ls); }
+    .toggle.weapon-card .weapon-glyph {
+      color: var(--muted);
+    }
+    .toggle.weapon-card .wpn-label {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      line-height: 1.15;
+      color: var(--muted);
+    }
+    .toggle.weapon-card:hover:not(:disabled):not(.active) {
+      opacity: 0.7;
+      filter: grayscale(0.25);
+      border-color: color-mix(in srgb, var(--wpn, var(--accent)) 45%, var(--border));
+    }
+    .toggle.weapon-card.active {
+      opacity: 1;
+      filter: none;
+      --accent: var(--wpn, var(--accent));
+      background: color-mix(in srgb, var(--wpn, var(--accent)) 32%, var(--bg3));
+      border-color: var(--wpn, var(--accent));
+      border-width: 2px;
+      box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--wpn, var(--accent)) 55%, transparent),
+        0 0 14px color-mix(in srgb, var(--wpn, var(--accent)) 35%, transparent);
+    }
+    .toggle.weapon-card.active .weapon-glyph {
+      color: var(--wpn, var(--accent));
+      filter: drop-shadow(0 0 5px color-mix(in srgb, var(--wpn, var(--accent)) 55%, transparent));
+    }
+    .toggle.weapon-card.active .wpn-label {
+      color: #fff;
+      font-weight: 750;
+    }
+    .toggle.weapon-card.active::after {
+      content: "✓";
+      position: absolute;
+      top: 0.28rem;
+      right: 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--wpn, var(--accent));
+      line-height: 1;
+    }
+    .weapon-glyph {
+      width: 1.7rem;
+      height: 2.15rem;
+      flex-shrink: 0;
+    }
+    .weapon-glyph svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+    .toggle.weapon-card.empty.active::after {
+      content: "✓";
+    }
+    .toggle.weapon-card:disabled {
+      opacity: 0.22;
+      filter: grayscale(0.8);
+    }
+    .combat-panel {
+      border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+    }
+    .combat-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .combat-head h2 { margin: 0; }
+    .combat-head-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .btn-turn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.95rem;
+      border-radius: 999px;
+      font-family: var(--font-ui);
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      transition:
+        background 0.15s,
+        border-color 0.15s,
+        color 0.15s,
+        box-shadow 0.15s,
+        transform 0.12s;
+    }
+    .btn-turn .btn-ico {
+      width: 1.05rem;
+      height: 1.05rem;
+      flex-shrink: 0;
+    }
+    .btn-turn:active {
+      transform: translateY(1px);
+    }
+    .btn-new-turn {
+      background: linear-gradient(165deg,
+        color-mix(in srgb, var(--accent) 92%, #fff) 0%,
+        var(--accent) 45%,
+        color-mix(in srgb, var(--accent) 75%, #1a4a8a) 100%);
+      border: 1px solid color-mix(in srgb, var(--accent) 60%, #1a4a8a);
+      color: #071018;
+      box-shadow:
+        0 1px 0 color-mix(in srgb, #fff 25%, transparent) inset,
+        0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent);
+    }
+    .btn-new-turn:hover {
+      border-color: color-mix(in srgb, var(--accent) 40%, #fff);
+      box-shadow:
+        0 1px 0 color-mix(in srgb, #fff 30%, transparent) inset,
+        0 8px 20px color-mix(in srgb, var(--accent) 40%, transparent);
+      filter: brightness(1.06);
+    }
+    .btn-clear-turn {
+      background: color-mix(in srgb, var(--bg3) 70%, transparent);
+      border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border));
+      color: color-mix(in srgb, var(--danger) 55%, var(--muted));
+      box-shadow: none;
+    }
+    .btn-clear-turn:hover {
+      background: color-mix(in srgb, var(--danger) 12%, var(--bg3));
+      border-color: color-mix(in srgb, var(--danger) 65%, var(--border));
+      color: color-mix(in srgb, var(--danger) 85%, var(--text));
+    }
+    .btn-short-rest {
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg3));
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+      color: color-mix(in srgb, var(--accent) 85%, var(--text));
+      box-shadow: none;
+    }
+    .btn-short-rest:hover {
+      background: color-mix(in srgb, var(--accent) 22%, var(--bg3));
+      border-color: var(--accent);
+    }
+    .btn-long-rest {
+      background: linear-gradient(165deg,
+        color-mix(in srgb, var(--war) 88%, #fff) 0%,
+        var(--war) 50%,
+        color-mix(in srgb, var(--war) 70%, #3a2a08) 100%);
+      border: 1px solid color-mix(in srgb, var(--war) 55%, #3a2a08);
+      color: #141008;
+      box-shadow:
+        0 1px 0 color-mix(in srgb, #fff 22%, transparent) inset,
+        0 6px 16px color-mix(in srgb, var(--war) 25%, transparent);
+    }
+    .btn-long-rest:hover {
+      filter: brightness(1.06);
+      border-color: color-mix(in srgb, var(--war) 40%, #fff);
+    }
+    .btn-reset-buffs {
+      background: color-mix(in srgb, var(--bg3) 70%, transparent);
+      border: 1px solid color-mix(in srgb, var(--muted) 40%, var(--border));
+      color: var(--muted);
+      box-shadow: none;
+    }
+    .btn-reset-buffs:hover {
+      background: color-mix(in srgb, var(--warn) 12%, var(--bg3));
+      border-color: color-mix(in srgb, var(--warn) 55%, var(--border));
+      color: color-mix(in srgb, var(--warn) 80%, var(--text));
+    }
+    .combat-surge {
+      appearance: none;
+      width: 100%;
+      text-align: left;
+      margin: 0;
+      padding: 0.7rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg3));
+      color: var(--text);
+      cursor: pointer;
+    }
+    .combat-top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem;
+      margin: 0 0 0.75rem;
+    }
+    @media (max-width: 720px) {
+      .combat-top-row { grid-template-columns: 1fr; }
+    }
+    .combat-surge.savage {
+      border-color: color-mix(in srgb, var(--war) 55%, var(--border));
+      background: color-mix(in srgb, var(--war) 14%, var(--bg3));
+    }
+    .combat-surge.savage:not(.done) .card-title {
+      color: color-mix(in srgb, var(--war) 70%, var(--text));
+    }
+    .combat-surge .card-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.02rem;
+      letter-spacing: 0.04em;
+    }
+    .combat-surge .card-sub {
+      display: block;
+      margin-top: 0.2rem;
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .combat-surge.done {
+      background: color-mix(in srgb, var(--good) 18%, var(--bg));
+      border-color: var(--good);
+    }
+    .combat-surge.done .card-title::after {
+      content: " ✓";
+      color: var(--good);
+    }
+    .combat-surge.locked {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .combat-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.75rem;
+      align-items: start;
+      width: 100%;
+    }
+    .combat-section {
+      margin-top: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem;
+      min-width: 0;
+    }
+    .combat-section.col-action {
+      --col-tone: var(--accent);
+      border-color: color-mix(in srgb, var(--col-tone) 40%, var(--border));
+      border-top: 3px solid var(--col-tone);
+    }
+    .combat-section.col-bonus {
+      --col-tone: var(--warn);
+      border-color: color-mix(in srgb, var(--col-tone) 40%, var(--border));
+      border-top: 3px solid var(--col-tone);
+    }
+    .combat-section.col-reaction {
+      --col-tone: var(--journey);
+      border-color: color-mix(in srgb, var(--col-tone) 40%, var(--border));
+      border-top: 3px solid var(--col-tone);
+    }
+    .action-mode-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-bottom: 0.55rem;
+    }
+    .action-mode-row button {
+      width: 100%;
+      text-align: left;
+      padding: 0.45rem 0.55rem;
+      font-size: 0.8rem;
+      font-weight: 650;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .action-mode-row button.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 22%, var(--bg3));
+    }
+    .action-mode-row button .mode-sub {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+    .action-mode-row button.active .mode-sub {
+      color: color-mix(in srgb, #fff 65%, var(--muted));
+    }
+    .action-info-card {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.7rem;
+      background: var(--bg3);
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .action-info-card strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: var(--accent);
+    }
+    .combat-section h3 {
+      margin: 0 0 0.5rem;
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: color-mix(in srgb, var(--col-tone, var(--muted)) 70%, var(--muted));
+      font-weight: 600;
+    }
+    .card-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .combat-card {
+      appearance: none;
+      text-align: left;
+      position: relative;
+      --card-tone: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--card-tone) 48%, var(--border));
+      background: color-mix(in srgb, var(--card-tone) 8%, var(--bg3));
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.7rem 0.75rem;
+      cursor: pointer;
+      min-height: 4.5rem;
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-tone) 10%, transparent);
+      transition: background 0.12s, border-color 0.12s, opacity 0.12s, box-shadow 0.12s;
+    }
+    .combat-card .card-pips {
+      position: absolute;
+      right: 0.55rem;
+      bottom: 0.45rem;
+      display: flex;
+      gap: 0.18rem;
+      pointer-events: none;
+    }
+    .combat-card .card-pip {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 2px;
+      border: 1px solid color-mix(in srgb, var(--card-tone) 35%, var(--border));
+      background: transparent;
+      box-sizing: border-box;
+      opacity: 0.45;
+    }
+    /* Täytetty = jäljellä (sama kuin tracker .slot.avail) */
+    .combat-card .card-pip.on {
+      opacity: 1;
+      background: color-mix(in srgb, var(--card-tone) 75%, #fff);
+      border-color: color-mix(in srgb, var(--card-tone) 85%, #fff);
+    }
+    .combat-card.has-pips .card-sub {
+      padding-right: 2.4rem;
+      padding-bottom: 0.35rem;
+    }
+    .combat-card:hover:not(:disabled):not(.done):not(.locked):not(.hit):not(.miss):not(.has-adv) {
+      border-color: var(--card-tone);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--card-tone) 28%, transparent);
+    }
+    .combat-card .card-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.02rem;
+      letter-spacing: 0.03em;
+      display: block;
+    }
+    .combat-card .card-sub {
+      display: block;
+      margin-top: 0.25rem;
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .combat-card.attack { --card-tone: var(--accent); }
+    .combat-card.bonus { --card-tone: var(--warn); }
+    .combat-card.reaction { --card-tone: var(--journey); }
+    .combat-card.is-rune {
+      position: relative;
+      padding-right: 2.5rem;
+      background:
+        linear-gradient(145deg,
+          color-mix(in srgb, var(--card-tone) 16%, var(--bg3)) 0%,
+          var(--bg3) 55%);
+      border-color: color-mix(in srgb, var(--card-tone) 48%, var(--border));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-tone) 18%, transparent);
+    }
+    .combat-card.is-rune .rune-mark {
+      position: absolute;
+      top: 0.45rem;
+      right: 0.45rem;
+      width: 1.55rem;
+      height: 1.55rem;
+      display: grid;
+      place-items: center;
+      transform: rotate(45deg);
+      background: color-mix(in srgb, var(--card-tone) 22%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--card-tone) 70%, #fff);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--card-tone) 35%, transparent);
+      pointer-events: none;
+      color: color-mix(in srgb, var(--card-tone) 80%, #fff);
+    }
+    .combat-card.is-rune .rune-mark .rune-mark-inner {
+      display: block;
+      width: 0.95rem;
+      height: 1.2rem;
+      transform: rotate(-45deg);
+      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--card-tone) 45%, transparent));
+    }
+    .combat-card.is-rune .rune-mark .rune-mark-inner svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+    .combat-card.is-rune .card-sub {
+      color: color-mix(in srgb, var(--card-tone) 55%, var(--muted));
+    }
+    /* Category-monochrome chips / TM inside Action cards */
+    .combat-card.attack .mastery-chip:not(.adv) {
+      background: color-mix(in srgb, var(--accent) 28%, var(--bg));
+      color: #cfe6ff;
+      border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+    .combat-card.attack .tm-btn.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 28%, var(--bg));
+      color: #cfe6ff;
+    }
+    .combat-card.attack .tm-effect {
+      color: var(--accent);
+    }
+    .combat-card.attack .card-reminders .nick-line,
+    .combat-card.attack .card-reminders .sap-line {
+      color: color-mix(in srgb, var(--accent) 72%, var(--muted));
+    }
+    .combat-card.attack .savage-hint {
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg));
+      border: 1px dashed color-mix(in srgb, var(--accent) 50%, var(--border));
+      color: color-mix(in srgb, var(--accent) 75%, var(--text));
+    }
+    .combat-card.attack .card-roll-row button.roll-dmg {
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg));
+      border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    }
+    .combat-card.attack .card-roll-row button.roll-dmg:hover {
+      border-color: var(--accent);
+    }
+    .combat-card.done {
+      background: color-mix(in srgb, var(--good) 18%, var(--bg));
+      border-color: var(--good);
+      opacity: 0.85;
+    }
+    .combat-card.done .card-title::after {
+      content: " ✓";
+      color: var(--good);
+    }
+    .combat-card.hit {
+      background: color-mix(in srgb, var(--good) 22%, var(--bg));
+      border-color: var(--good);
+    }
+    .combat-card.miss {
+      background: color-mix(in srgb, var(--danger) 16%, var(--bg));
+      border-color: var(--danger);
+      opacity: 0.8;
+    }
+    .combat-card.locked {
+      opacity: 0.35;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
+    }
+    .combat-card:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .combat-status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+    }
+    .mastery-chip {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.12rem 0.4rem;
+      border-radius: 4px;
+      margin: 0.35rem 0.25rem 0 0;
+      vertical-align: middle;
+    }
+    .mastery-chip.vex { background: color-mix(in srgb, var(--accent) 35%, var(--bg)); color: #cfe6ff; }
+    .mastery-chip.nick { background: color-mix(in srgb, var(--warn) 35%, var(--bg)); color: #ffe6a8; }
+    .mastery-chip.sap { background: color-mix(in srgb, var(--stone) 45%, var(--bg)); color: #e2e6ee; }
+    .mastery-chip.push {
+      background: color-mix(in srgb, var(--warn) 28%, var(--bg));
+      color: #ffe0a8;
+    }
+    .mastery-chip.slow {
+      background: color-mix(in srgb, var(--cloud) 30%, var(--bg));
+      color: #c5e4ff;
+    }
+    .mastery-chip.tm {
+      background: color-mix(in srgb, var(--warn) 22%, var(--bg));
+      color: #ffd27a;
+      border: 1px solid color-mix(in srgb, var(--warn) 50%, transparent);
+    }
+    .tm-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.3rem;
+      align-items: center;
+      margin-top: 0.45rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      overscroll-behavior-x: contain;
+    }
+    .tm-row .tm-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-right: 0.1rem;
+      flex-shrink: 0;
+    }
+    .tm-btn {
+      appearance: none;
+      flex-shrink: 0;
+      padding: 0.2rem 0.42rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      cursor: pointer;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .tm-btn.active {
+      border-color: var(--warn);
+      background: color-mix(in srgb, var(--warn) 28%, var(--bg));
+      color: #ffe6a8;
+    }
+    .tm-btn.native.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 25%, var(--bg));
+      color: #cfe6ff;
+    }
+    .tm-effect {
+      margin-top: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 650;
+      color: var(--warn);
+    }
+    .mastery-chip.adv {
+      background: var(--good);
+      color: #062016;
+      animation: pulseAdv 1.2s ease-in-out infinite;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+    }
+    @keyframes pulseAdv {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 60%, transparent); }
+      50% { transform: scale(1.04); box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 30%, transparent); }
+    }
+    .card-reminders {
+      margin-top: 0.4rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .card-reminders .adv-line { color: var(--good); }
+    .card-reminders .nick-line { color: var(--warn); }
+    .card-reminders .sap-line { color: var(--stone); }
+    .adv-banner {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0 0 0.5rem;
+      padding: 0.55rem 0.6rem;
+      border-radius: 8px;
+      background: var(--good);
+      color: #062016;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-align: center;
+      animation: pulseAdv 1.2s ease-in-out infinite;
+    }
+    .adv-banner .adv-sub {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      opacity: 0.85;
+      margin-top: 0.15rem;
+    }
+    .vex-granted {
+      display: block;
+      margin-top: 0.45rem;
+      padding: 0.4rem 0.5rem;
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--accent) 25%, var(--bg));
+      border: 1px solid var(--accent);
+      color: #cfe6ff;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .savage-hint {
+      display: block;
+      margin-top: 0.4rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--war) 18%, var(--bg));
+      border: 1px dashed color-mix(in srgb, var(--war) 55%, var(--border));
+      color: color-mix(in srgb, var(--war) 75%, var(--text));
+      font-size: 0.72rem;
+      font-weight: 650;
+    }
+    .combat-card.attack.has-adv {
+      border: 2px solid var(--good);
+      background: color-mix(in srgb, var(--good) 14%, var(--bg3));
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--good) 35%, transparent);
+    }
+    .adv-status-bar {
+      background: var(--good);
+      color: #062016;
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      margin-bottom: 0.75rem;
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-align: center;
+      animation: pulseAdv 1.2s ease-in-out infinite;
+    }
+    .adv-status-bar span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-top: 0.2rem;
+      opacity: 0.9;
+    }
+    .hit-miss-row {
+      display: flex;
+      gap: 0.45rem;
+      margin-top: 0.65rem;
+    }
+    .hit-miss-row button {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      min-height: 2.6rem;
+      padding: 0.45rem;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s, transform 0.1s;
+    }
+    .hit-miss-row button svg {
+      width: 1.35rem;
+      height: 1.35rem;
+      display: block;
+    }
+    .hit-miss-row button.hm-hit {
+      border-color: color-mix(in srgb, var(--good) 45%, var(--border));
+      background: color-mix(in srgb, var(--good) 10%, var(--bg));
+      color: color-mix(in srgb, var(--good) 80%, #fff);
+    }
+    .hit-miss-row button.hm-miss {
+      border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
+      background: color-mix(in srgb, var(--danger) 10%, var(--bg));
+      color: color-mix(in srgb, var(--danger) 75%, #fff);
+    }
+    .hit-miss-row button.hm-hit:hover {
+      background: color-mix(in srgb, var(--good) 22%, var(--bg));
+      border-color: var(--good);
+      transform: translateY(-1px);
+    }
+    .hit-miss-row button.hm-miss:hover {
+      background: color-mix(in srgb, var(--danger) 22%, var(--bg));
+      border-color: var(--danger);
+      transform: translateY(-1px);
+    }
+    .hit-miss-row button.hm-hit.active {
+      background: var(--good);
+      border-color: var(--good);
+      color: #062016;
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--good) 35%, transparent);
+    }
+    .hit-miss-row button.hm-miss.active {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #1a0505;
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 35%, transparent);
+    }
+    .card-roll-row {
+      display: flex;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+    .card-roll-row button {
+      flex: 1;
+      padding: 0.38rem 0.35rem;
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      font-weight: 700;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+      color: var(--text);
+      cursor: pointer;
+    }
+    .card-roll-row button.roll-dmg {
+      background: color-mix(in srgb, var(--warn) 14%, var(--bg));
+      border-color: color-mix(in srgb, var(--warn) 40%, var(--border));
+    }
+    .card-roll-row button:hover {
+      border-color: var(--accent);
+    }
+    .card-roll-row button.roll-dmg:hover {
+      border-color: var(--warn);
+    }
+    .card-roll-row button.roll-dmg.crit-pending {
+      background: color-mix(in srgb, var(--war) 28%, var(--bg));
+      border-color: color-mix(in srgb, var(--war) 70%, var(--border));
+      color: color-mix(in srgb, var(--war) 75%, #fff);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--war) 30%, transparent);
+    }
+    .crit-pending-banner {
+      background: color-mix(in srgb, var(--war) 16%, var(--bg2));
+      border: 1px solid color-mix(in srgb, var(--war) 55%, var(--border));
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: color-mix(in srgb, var(--war) 75%, #fff);
+    }
+    .crit-pending-banner span {
+      display: block;
+      font-weight: 500;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+    .combat-round-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.55rem 0.85rem;
+      margin: 0 0 0.75rem;
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg3) 70%, var(--bg2));
+    }
+    .combat-round-bar .round-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .combat-round-bar .round-btn {
+      appearance: none;
+      width: 1.7rem;
+      height: 1.7rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+    }
+    .combat-round-bar .round-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .combat-round-bar .round-label {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      min-width: 5.5rem;
+    }
+    .combat-round-bar .round-label strong {
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+    }
+    .combat-round-bar .duration-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+    }
+    .combat-round-bar .duration-chip.on {
+      color: color-mix(in srgb, var(--accent) 85%, #fff);
+      border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg));
+    }
+    .combat-round-bar .duration-chip.gm.on {
+      color: color-mix(in srgb, var(--war) 85%, #fff);
+      border-color: color-mix(in srgb, var(--war) 50%, var(--border));
+      background: color-mix(in srgb, var(--war) 14%, var(--bg));
+    }
+    .haste-active-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      background: color-mix(in srgb, var(--accent) 14%, var(--bg2));
+      border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border));
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .haste-active-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      min-width: 0;
+    }
+    .haste-active-text strong {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: color-mix(in srgb, var(--accent) 75%, var(--text));
+    }
+    .haste-active-text span {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .haste-dismiss {
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .haste-dismiss:hover {
+      border-color: var(--accent);
+    }
+    .combat-card.attack.is-haste {
+      border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+      background: color-mix(in srgb, var(--accent) 10%, var(--bg2));
+      box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 75%, transparent);
+    }
+    .combat-card.attack.is-dual {
+      border-color: color-mix(in srgb, var(--good) 45%, var(--border));
+      background: color-mix(in srgb, var(--good) 8%, var(--bg2));
+      box-shadow: inset 3px 0 0 color-mix(in srgb, var(--good) 65%, transparent);
+    }
+    .source-banner {
+      border-radius: 6px;
+      padding: 0.35rem 0.55rem;
+      margin-bottom: 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .source-banner.haste {
+      background: color-mix(in srgb, var(--accent) 22%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border));
+      color: color-mix(in srgb, var(--accent) 80%, #fff);
+    }
+    .source-banner.haste span {
+      display: block;
+      margin-top: 0.12rem;
+      font-weight: 500;
+      font-size: 0.7rem;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--muted);
+    }
+    .source-banner.dual {
+      background: color-mix(in srgb, var(--good) 18%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--good) 45%, var(--border));
+      color: color-mix(in srgb, var(--good) 75%, #fff);
+    }
+    .source-banner.dual span {
+      display: block;
+      margin-top: 0.12rem;
+      font-weight: 500;
+      font-size: 0.7rem;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--muted);
+    }
+    .source-banner.surge {
+      background: color-mix(in srgb, var(--warn) 16%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--border));
+      color: color-mix(in srgb, var(--warn) 80%, #fff);
+    }
+    .mastery-chip.haste {
+      background: color-mix(in srgb, var(--accent) 40%, var(--bg));
+      color: #cfe6ff;
+    }
+    .mastery-chip.dual {
+      background: color-mix(in srgb, var(--good) 35%, var(--bg));
+      color: #c8f0d8;
+    }
+    .mastery-chip.surge {
+      background: color-mix(in srgb, var(--warn) 35%, var(--bg));
+      color: #ffe6a8;
+    }
+    .mastery-banner {
+      background: color-mix(in srgb, var(--warn) 12%, var(--bg2));
+      border: 1px solid color-mix(in srgb, var(--warn) 40%, var(--border));
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mastery-banner strong { color: var(--warn); }
+    .mastery-banner .ok { color: var(--good); font-weight: 700; }
+    .mastery-banner ul {
+      margin: 0.35rem 0 0;
+      padding-left: 1.1rem;
+    }
+
+    .minmax {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .minmax .stat .value { font-size: 1.15rem; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      padding: 0.5rem 1rem 1.5rem;
+    }
+
+    /* ——— 3D Dice ——— */
+    #dice-box {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      pointer-events: none;
+      touch-action: none;
+      overflow: hidden;
+    }
+    /* Do NOT CSS-stretch the canvas — buffer size is set in JS 1:1 with display */
+    #dice-box canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      max-width: none !important;
+      max-height: none !important;
+      object-fit: unset !important;
+    }
+    .dice-dock {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      align-items: stretch;
+      width: min(11.5rem, calc(100vw - 2rem));
+      padding: 0.65rem;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--war) 40%, var(--border));
+      background: color-mix(in srgb, var(--bg2) 92%, transparent);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .dice-dock.collapsed {
+      width: auto;
+      padding: 0.4rem;
+      gap: 0;
+    }
+    .dice-dock.collapsed .dice-body {
+      display: none;
+    }
+    .dice-dock-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+    }
+    .dice-dock .dice-title {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--war);
+      font-weight: 700;
+      margin: 0;
+    }
+    .dice-dock #diceToggle {
+      padding: 0.2rem 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      min-width: 2rem;
+      flex-shrink: 0;
+    }
+    .dice-dock .dice-result {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      min-height: 1.5rem;
+      letter-spacing: 0.04em;
+    }
+    .dice-dock .dice-result.crit {
+      color: color-mix(in srgb, var(--war) 85%, #fff);
+      text-shadow: 0 0 12px color-mix(in srgb, var(--war) 45%, transparent);
+    }
+    .dice-dock .dice-result.fumble {
+      color: var(--danger);
+      text-shadow: 0 0 12px color-mix(in srgb, var(--danger) 40%, transparent);
+    }
+    .dice-flag {
+      display: none;
+      margin: 0.15rem 0 0.2rem;
+      padding: 0.28rem 0.45rem;
+      border-radius: 6px;
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .dice-flag.show { display: block; }
+    .dice-flag.crit {
+      background: color-mix(in srgb, var(--war) 22%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--war) 65%, var(--border));
+      color: color-mix(in srgb, var(--war) 80%, #fff);
+    }
+    .dice-flag.fumble {
+      background: color-mix(in srgb, var(--danger) 18%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--danger) 60%, var(--border));
+      color: var(--danger);
+    }
+    .dice-toast {
+      position: fixed;
+      left: 50%;
+      top: 14%;
+      transform: translateX(-50%);
+      z-index: 10050;
+      pointer-events: none;
+      min-width: 9rem;
+      max-width: min(22rem, calc(100vw - 2rem));
+      padding: 0.75rem 1.15rem 0.85rem;
+      border-radius: 14px;
+      text-align: center;
+      background: color-mix(in srgb, var(--bg2) 88%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .dice-toast.show { opacity: 1; }
+    .dice-toast .toast-total {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+    .dice-toast .toast-flag {
+      display: none;
+      margin: 0.35rem 0 0.15rem;
+      font-family: var(--font-display);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .dice-toast .toast-flag.show { display: block; }
+    .dice-toast .toast-sub {
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.35;
+      margin-top: 0.25rem;
+    }
+    .dice-toast.crit {
+      border-color: color-mix(in srgb, var(--war) 65%, var(--border));
+      box-shadow: 0 12px 36px color-mix(in srgb, var(--war) 35%, transparent);
+    }
+    .dice-toast.crit .toast-total {
+      color: color-mix(in srgb, var(--war) 85%, #fff);
+      text-shadow: 0 0 16px color-mix(in srgb, var(--war) 45%, transparent);
+    }
+    .dice-toast.crit .toast-flag { color: color-mix(in srgb, var(--war) 80%, #fff); }
+    .dice-toast.fumble {
+      border-color: color-mix(in srgb, var(--danger) 65%, var(--border));
+      box-shadow: 0 12px 36px color-mix(in srgb, var(--danger) 35%, transparent);
+    }
+    .dice-toast.fumble .toast-total { color: var(--danger); }
+    .dice-toast.fumble .toast-flag { color: var(--danger); }
+    .dice-dock .dice-sub {
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+      min-height: 1rem;
+    }
+    .dice-dock .dice-sub.crit { color: color-mix(in srgb, var(--war) 70%, var(--muted)); }
+    .dice-dock .dice-sub.fumble { color: color-mix(in srgb, var(--danger) 70%, var(--muted)); }
+    .dice-dock .dice-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem;
+    }
+    .dice-dock button {
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.4rem 0.35rem;
+      border-radius: 7px;
+    }
+    .dice-dock button.wide {
+      grid-column: 1 / -1;
+    }
+    .dice-dock button:disabled {
+      opacity: 0.45;
+    }
+    .dice-dock .dice-status {
+      font-family: var(--font-ui);
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin: 0;
+    }
+    .dice-dock .dice-status.err { color: var(--danger); }
+    .dice-style {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin: 0.15rem 0 0.35rem;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--border);
+    }
+    .dice-style .style-label {
+      font-family: var(--font-display);
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .dice-swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      align-items: center;
+    }
+    .dice-swatch {
+      width: 1.35rem;
+      height: 1.35rem;
+      border-radius: 50%;
+      border: 2px solid color-mix(in srgb, #fff 25%, transparent);
+      padding: 0;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
+    }
+    .dice-swatch.active {
+      outline: 2px solid var(--text);
+      outline-offset: 1px;
+    }
+    .dice-swatch.custom {
+      background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+    }
+    #diceColorPicker {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+    }
+    .dice-style select {
+      width: 100%;
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.4rem;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div id="dice-box"></div>
+  <div id="diceToast" class="dice-toast" hidden>
+    <div class="toast-total" id="diceToastTotal">—</div>
+    <div class="toast-flag" id="diceToastFlag"></div>
+    <div class="toast-sub" id="diceToastSub"></div>
+  </div>
+  <aside class="dice-dock" id="diceDock">
+    <div class="dice-dock-head">
+      <div class="dice-title">Nopat</div>
+      <button type="button" class="ghost" id="diceToggle" title="Piilota / näytä" aria-expanded="true">−</button>
+    </div>
+    <div class="dice-body" id="diceBody">
+      <div class="dice-result" id="diceResult">—</div>
+      <div class="dice-flag" id="diceFlag" hidden></div>
+      <div class="dice-sub" id="diceSub">3D-heitto sheetin päällä</div>
+      <div class="dice-style">
+        <span class="style-label">Tekstuuri</span>
+        <select id="diceTheme" aria-label="Noppa-tekstuuri">
+          <option value="default">Default (väri)</option>
+          <option value="smooth">Smooth (väri)</option>
+          <option value="rust">Rust (väri)</option>
+          <option value="rock">Rock (väri)</option>
+          <option value="diceOfRolling">Dice of Rolling</option>
+          <option value="wooden">Wooden</option>
+        </select>
+        <span class="style-label">Väri</span>
+        <div class="dice-swatches" id="diceSwatches">
+          <button type="button" class="dice-swatch" data-color="#c9a227" title="Kulta" style="background:#c9a227"></button>
+          <button type="button" class="dice-swatch" data-color="#4ea1ff" title="Teräs" style="background:#4ea1ff"></button>
+          <button type="button" class="dice-swatch" data-color="#3ecf8e" title="Jade" style="background:#3ecf8e"></button>
+          <button type="button" class="dice-swatch" data-color="#ef6b6b" title="Rubiini" style="background:#ef6b6b"></button>
+          <button type="button" class="dice-swatch" data-color="#a78bfa" title="Amethyst" style="background:#a78bfa"></button>
+          <button type="button" class="dice-swatch" data-color="#e8e0d0" title="Luu" style="background:#e8e0d0"></button>
+          <button type="button" class="dice-swatch" data-color="#2a2f38" title="Obsidiaani" style="background:#2a2f38"></button>
+          <button type="button" class="dice-swatch custom" id="diceCustomSwatch" title="Oma väri"></button>
+          <input type="color" id="diceColorPicker" value="#c9a227" />
+        </div>
+      </div>
+      <div class="dice-btns">
+        <button type="button" class="primary wide" data-roll="1d20+10" data-label="To Hit">To Hit (d20+10)</button>
+        <button type="button" data-roll="2d20kh1+10" data-label="Advantage">Adv (2d20)</button>
+        <button type="button" data-roll="1d6+6" data-label="Shortsword">1d6+6</button>
+        <button type="button" data-roll="1d4+6" data-label="Dagger">1d4+6</button>
+        <button type="button" data-roll="1d20" data-label="d20">d20</button>
+        <button type="button" data-roll="1d8" data-label="d8">d8</button>
+        <button type="button" class="ghost wide" id="diceClear">Tyhjennä</button>
+      </div>
+      <p class="dice-status" id="diceStatus">Ladataan noppia…</p>
+    </div>
+  </aside>
+  <header class="sticky">
+    <div class="sticky-inner">
+      <div class="title-bar">
+        <div class="identity">
+          <span class="eyebrow">Rune Knight · Fighter L9</span>
+          <h1>Kaelan Stormsoul</h1>
+          <span class="subtitle">Combat Tool · vuoron seuranta</span>
+        </div>
+        <a href="./makhal.html">Makhal</a>
+      </div>
+      <div class="sticky-row" id="summaryBar">
+        <div class="stat to-hit"><span class="label">To Hit</span><span class="value accent" id="sumToHit">+9</span></div>
+        <div class="stat attacks"><span class="label">Iskut</span><span class="value good" id="sumAttacks">4</span></div>
+        <div class="stat avg"><span class="label">Avg DMG</span><span class="value warn" id="sumAvg">—</span></div>
+        <div class="stat"><span class="label">AC</span><span class="value" id="sumAC">17</span></div>
+        <div class="stat"><span class="label">Crit</span><span class="value" id="sumCrit">20</span></div>
+        <div class="stat"><span class="label">Speed</span><span class="value" id="sumSpeed">50</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Aktiiviset riimut (Rune Carver)</h2>
+      <p class="rune-count" id="runeCount">0 / 3 kaiverrettu</p>
+      <div class="toggle-grid" id="runeSelect"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Aseet &amp; kombo</h2>
+      <div class="loadout-grid" id="loadoutPanel"></div>
+    </section>
+
+    <section class="panel combat-panel">
+      <div class="combat-head">
+        <h2>Combat — tämä vuoro</h2>
+        <div class="combat-head-actions">
+          <button type="button" class="btn-turn btn-new-turn" id="btnNewTurn" title="Nollaa vuorotaulu + etenee encounter-roundia (Haste / Giant's Might −1)">
+            <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M17.5 3.8v4.2h-4.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19.5 12a7.5 7.5 0 0 1-12.8 5.3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M6.5 20.2v-4.2h4.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Uusi vuoro</span>
+          </button>
+          <button type="button" class="btn-turn btn-clear-turn" id="btnClearTurn" title="Nollaa vuoron merkinnät kokonaan (myös Vex-ADV)">
+            <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 7h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M8 7l.7 11.2A1.5 1.5 0 0 0 10.2 19.5h3.6a1.5 1.5 0 0 0 1.5-1.3L16 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Tyhjennä</span>
+          </button>
+        </div>
+      </div>
+      <div id="combatRoot"></div>
+    </section>
+
+    <section class="panel">
+      <div class="combat-head">
+        <h2>Resurssitracker</h2>
+        <div class="combat-head-actions">
+          <button type="button" class="btn-turn btn-short-rest" id="btnShortRest" title="Palauta Short Rest -resurssit (+ 1× Second Wind)">
+            <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2.2"/>
+              <path d="M12 8v4.2l2.4 1.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Short Rest</span>
+          </button>
+          <button type="button" class="btn-turn btn-long-rest" id="btnLongRest" title="Palauta kaikki käyttökerat · nollaa buffit ja vuorotaulu">
+            <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 14.5c2.2-3.5 5-5.2 8-5.2 2.2 0 4.1.8 5.8 2.1" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M18.5 7.5v4h-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5 18.5h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <span>Long Rest</span>
+          </button>
+          <button type="button" class="btn-turn btn-reset-buffs" id="btnResetBuffs" title="Poista aktiiviset buffit (Giant's Might, Haste, jne.) — ei palauta käyttökertoja">
+            <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4.5v6.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M8.2 8.2a5.8 5.8 0 1 0 7.6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <span>Buffit pois</span>
+          </button>
+        </div>
+      </div>
+      <div class="resource-list" id="resourceList"></div>
+    </section>
+  </main>
+
+  <footer>Data: Combat Resource Matrix L9 · localStorage: kaelan-combat-v1 · houserule: Giant's Might joka osuma</footer>
+
+  <script>
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "kaelan-combat-v1";
+
+  const CHAR = {
+    name: "Kaelan Stormsoul",
+    level: 9,
+    pb: 4,
+    toHit: 10, // DEX 5 + PB 4 + magic 1
+    ac: 17,
+    acDD: 21, // 17 + PB 4
+    speedBase: 40, // 30 + Speedy 10 (without Journey)
+    speedJourney: 10,
+    saveDC: 15, // 8 + PB 4 + CON 3 (runes)
+    dexMod: 5,
+    magicBonus: 1,
+    flatDamage: 6, // DEX 5 + magic 1
+    extraAttacks: 2,
+    tempHpWar: 18, // 2 × Fighter level
+    secondWindHeal: "1d10+9",
+    maxActiveRunes: 3,
+  };
+
+  const WEAPON_IDS = ["shortsword", "dagger", "longsword"];
+
+  // Simple silhouette glyphs for loadout cards
+  const WEAPON_GLYPH = {
+    shortsword: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M20 4 L24 10 L24 36 L28 40 L28 44 L12 44 L12 40 L16 36 L16 10 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M12 40 H28 M20 44 V50" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+    dagger: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M20 4 L23 14 L23 30 L27 34 L27 37 L13 37 L13 34 L17 30 L17 14 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M11 34 H29 M20 37 V48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+    longsword: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M20 2 L25 10 L25 38 L31 42 L31 46 L9 46 L9 42 L15 38 L15 10 Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M8 42 H32 M20 46 V54" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+    empty: `<svg viewBox="0 0 40 56" aria-hidden="true"><circle cx="20" cy="28" r="11" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M13 21 L27 35" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+    grip1h: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M20 6 L24 12 L24 34 L28 38 L28 42 L12 42 L12 38 L16 34 L16 12 Z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/><path d="M12 38 H28" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M8 48 H32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+    grip2h: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M20 2 L25 10 L25 36 L31 40 L31 44 L9 44 L9 40 L15 36 L15 10 Z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/><path d="M8 40 H32 M20 44 V52" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M14 48 H26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+  };
+
+  function weaponCardHtml(glyphKey, label) {
+    const glyph = WEAPON_GLYPH[glyphKey] || WEAPON_GLYPH.empty;
+    return `<span class="weapon-glyph">${glyph}</span><span class="wpn-label">${label}</span>`;
+  }
+
+  const WEAPONS = {
+    shortsword: {
+      id: "shortsword",
+      name: "Shortsword +1",
+      short: "Shortsword",
+      faces: 6,
+      type: "piercing",
+      mastery: "Vex",
+      light: true,
+      nick: false,
+      versatile: false,
+    },
+    dagger: {
+      id: "dagger",
+      name: "Dagger +1",
+      short: "Dagger",
+      faces: 4,
+      type: "piercing",
+      mastery: "Nick",
+      light: true,
+      nick: true,
+      versatile: false,
+    },
+    longsword: {
+      id: "longsword",
+      name: "Longsword +1",
+      short: "Longsword",
+      faces: 8,
+      faces2h: 10,
+      type: "slashing",
+      mastery: "Sap",
+      light: false,
+      nick: false,
+      versatile: true,
+    },
+  };
+
+  function defaultLoadout() {
+    return { main: "shortsword", off: "dagger", grip: "1h" };
+  }
+
+  function normalizeLoadout(raw) {
+    const L = { ...defaultLoadout(), ...(raw || {}) };
+    if (!WEAPONS[L.main]) L.main = "shortsword";
+    if (L.off != null && !WEAPONS[L.off]) L.off = "dagger";
+    if (L.main === "longsword" && L.grip === "2h") {
+      L.off = null;
+    } else {
+      L.grip = "1h";
+      if (L.off === undefined) L.off = null;
+    }
+    return L;
+  }
+
+  function getWeaponProfile(weaponId, twoHanded) {
+    const base = WEAPONS[weaponId];
+    if (!base) return null;
+    const th = !!(twoHanded && base.versatile);
+    return {
+      id: base.id,
+      name: base.name,
+      short: th ? "Longsword 2H" : base.id === "longsword" ? "Longsword 1H" : base.short,
+      faces: th ? base.faces2h : base.faces,
+      type: base.type,
+      mastery: base.mastery,
+      light: base.light,
+      nick: base.nick,
+      twoHanded: th,
+    };
+  }
+
+  /** Derive combat setup from current loadout */
+  function getLoadoutMeta(loadout) {
+    const L = normalizeLoadout(loadout);
+    const twoHanded = L.main === "longsword" && L.grip === "2h";
+    const main = getWeaponProfile(L.main, twoHanded);
+    const off = (!twoHanded && L.off) ? getWeaponProfile(L.off, false) : null;
+    const dual = !!off;
+    const bothLight = dual && main.light && off.light;
+    const hasNickWeapon = main.nick || (off && off.nick);
+    const canNick = bothLight && hasNickWeapon;
+    // EDW: Attack action included a Light weapon attack + another melee (not 2H)
+    const canEdw = dual && (main.light || off.light) && !twoHanded;
+    const hasVex = main.id === "shortsword" || (off && off.id === "shortsword");
+    const hasSap = main.id === "longsword" || (off && off.id === "longsword");
+
+    const label = twoHanded
+      ? "Longsword 2H (Sap)"
+      : dual
+        ? `${main.short} + ${off.short}`
+        : `${main.short} alone`;
+
+    return { loadout: L, main, off, dual, twoHanded, canNick, canEdw, hasVex, hasSap, label };
+  }
+
+  function buildActionAttacks(meta, useNick) {
+    const { main, off, canNick } = meta;
+    const attacks = [];
+
+    if (!off) {
+      attacks.push({ weaponId: main.id, twoHanded: main.twoHanded, tag: main.mastery });
+      attacks.push({ weaponId: main.id, twoHanded: main.twoHanded, tag: "" });
+      return attacks;
+    }
+
+    // Order: Vex first if SS present; else main then off
+    let first = main;
+    let second = off;
+    if (off.id === "shortsword" && main.id !== "shortsword") {
+      first = off;
+      second = main;
+    } else if (main.id === "shortsword") {
+      first = main;
+      second = off;
+    } else if (off.nick && !main.nick) {
+      // Put nick weapon second so mastery tags cleanly before Nick extra
+      first = main;
+      second = off;
+    }
+
+    const tagFor = (w, isFirst) => {
+      if (w.mastery === "Vex" && isFirst) return "Vex";
+      if (w.mastery === "Sap") return "Sap";
+      return "";
+    };
+
+    attacks.push({
+      weaponId: first.id,
+      twoHanded: first.twoHanded,
+      tag: tagFor(first, true),
+    });
+    attacks.push({
+      weaponId: second.id,
+      twoHanded: second.twoHanded,
+      tag: tagFor(second, false),
+    });
+
+    if (useNick && canNick) {
+      // Nick Light-extra: prefer dagger if present, else the other light weapon
+      const nickDie = main.nick ? main : off.nick ? off : second;
+      attacks.push({
+        weaponId: nickDie.id,
+        twoHanded: false,
+        tag: "Nick",
+      });
+    }
+    return attacks;
+  }
+
+  function pickEdwWeapon(meta) {
+    const { main, off } = meta;
+    if (!off) return main;
+    // Prefer higher die, break ties toward Vex (SS)
+    const a = main;
+    const b = off;
+    if (a.faces !== b.faces) return a.faces >= b.faces ? a : b;
+    if (a.id === "shortsword") return a;
+    if (b.id === "shortsword") return b;
+    return a;
+  }
+
+  function pickHasteWeapon(meta) {
+    return pickEdwWeapon(meta);
+  }
+
+  // Known runes — max 3 active (inscribed) at once
+  // Glyphs: Elder Futhark -inspired carved strokes (inline SVG)
+  const RUNE_GLYPH = {
+    fire: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M28 8 L12 28 L28 48" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    stone: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M10 10 L10 46 L30 46 L30 10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 10 L20 22 L30 10" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    war: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M20 8 L20 48 M8 22 L20 8 L32 22" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    journey: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M12 8 L12 48 M12 8 H28 V26 H12 M18 26 L30 48" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    cloud: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M20 8 L20 48 M20 8 L32 20 M20 28 L32 40" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    light: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M26 8 L12 28 H26 L12 48" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    lostVeil: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M12 8 V48 M28 8 V48 M12 18 H28 M12 38 H28 M20 18 V38" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    // Rune Knight class feature (not an inscribed rune)
+    runicShield: `<svg viewBox="0 0 40 56" aria-hidden="true"><path d="M20 8 L32 14 V28 C32 40 20 48 20 48 C20 48 8 40 8 28 V14 Z" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 18 V36 M14 27 H26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>`,
+  };
+
+  function runeMarkHtml(runeKey, title) {
+    const glyph = RUNE_GLYPH[runeKey] || RUNE_GLYPH.journey;
+    return `<span class="rune-mark" title="${title || "Rune"}" aria-hidden="true"><span class="rune-mark-inner">${glyph}</span></span>`;
+  }
+
+  const RUNES = [
+    { id: "fire", name: "Fire", resourceId: "fireRune", cls: "fire",
+      passive: "Double prof Smith's Tools", invoke: "+2d6 fire + restrained (1/SR)",
+      tipPassive: "Double proficiency Smith's Tools -checkeihin.",
+      tipTrigger: "Invoke (1/SR): osuit aseella.",
+      tipEffect: (dc) => `+2d6 fire. Kohde STR save DC ${dc} tai restrained 1 min; while restrained 2d6 fire vuoron alussa (save vuoron lopussa).` },
+    { id: "stone", name: "Stone", resourceId: "stoneRune", cls: "stone",
+      passive: "ADV Insight, Darkvision 120 ft", invoke: "Incapacitate (reaktio, 1/SR)",
+      tipPassive: "Advantage Insight · Darkvision 120 ft.",
+      tipTrigger: "Reaktio (1/SR): olento lopettaa vuoronsa 30 ft sisällä.",
+      tipEffect: (dc) => `WIS save DC ${dc} tai charmed 1 min. While charmed: speed 0 + incapacitated. Save uudelleen jokaisen vuoron lopussa.` },
+    { id: "war", name: "War", resourceId: "warRune", cls: "war",
+      passive: "Crit 19–20", invoke: "18 temp HP + Haste (1/LR)",
+      tipPassive: "Critical hits 19–20 kun riimu kaiverrettu.",
+      tipTrigger: "Bonus Action (1/LR).",
+      tipEffect: () => `${CHAR.tempHpWar} temp HP (2× Fighter level) + Haste 1 min ilman concentrationia (+2 AC, ADV DEX saves, +1 Attack-Action-isku, ×2 speed).` },
+    { id: "journey", name: "Journey", resourceId: "journeyRune", cls: "journey",
+      passive: "+10 ft speed", invoke: "Misty Step (reaktio, 1/SR)",
+      tipPassive: "+10 ft speed · 50% pidempi marssi ennen exhaustionia.",
+      tipTrigger: "Reaktio (1/SR): kun sinua osutaan.",
+      tipEffect: () => "Misty Step: teleport 30 ft näköetäisyydelle. Ei opportunity attackia." },
+    { id: "cloud", name: "Cloud", resourceId: "cloudRune", cls: "cloud",
+      passive: "ADV Sleight of Hand + Deception", invoke: "Redirect osuma (1/SR)",
+      tipPassive: "Advantage Sleight of Hand + Deception.",
+      tipTrigger: "Reaktio (1/SR): sinua tai näkyvää olentoa 30 ft sisällä osutetaan.",
+      tipEffect: () => "Siirrä sama attack roll toiselle olennolle 30 ft sisällä (ei hyökkääjälle). Ei rerollia — uusi AC voi torjua." },
+    { id: "light", name: "Light", resourceId: "lightRune", cls: "light",
+      passive: "Continuous Light", invoke: "Detect undead 30 ft (1/SR)",
+      tipPassive: "Kaiverrettu esine hohtaa kuin Continuous Light.",
+      tipTrigger: "Invoke (1/SR tai LR).",
+      tipEffect: () => "Detect undead 30 ft, 10 min. Esto: 1 ft kivi/maa/puu; 1 in metalli; ohut lyijy." },
+    { id: "lostVeil", name: "Lost Veil", resourceId: "lostVeilRune", cls: "veil",
+      passive: "Shadow-wall (Material ↔ Shadowfell)", invoke: "Veil Breach (1/dawn)",
+      tipPassive: "Seinään: varjolento voi kulkea Material ↔ Shadowfell.",
+      tipTrigger: "Veil Breach (1/dawn) kannetusta esineestä.",
+      tipEffect: () => "Teleportoi sinä + ≤2 olentoa (10 ft) Shadowfelliin tai takaisin Materialille. (Erillinen kertakäyttö-special: ≤10 olentoa — ei tässä trackerissa.)" },
+  ];
+
+  function runeTipHtml(rune) {
+    const dc = CHAR.saveDC;
+    const effect = typeof rune.tipEffect === "function" ? rune.tipEffect(dc) : (rune.tipEffect || "");
+    return `
+      <div class="rune-tip" role="tooltip">
+        <div class="tip-h">Passive</div>
+        <p>${rune.tipPassive || rune.passive}</p>
+        <div class="tip-h">Invoke</div>
+        <p class="tip-meta">${rune.tipTrigger || ""}</p>
+        <p>${effect}</p>
+      </div>`;
+  }
+
+  const RUNE_BY_ID = Object.fromEntries(RUNES.map((r) => [r.id, r]));
+  const RUNE_BY_RESOURCE = Object.fromEntries(RUNES.map((r) => [r.resourceId, r]));
+
+  // Matrix default Active: Cloud, Journey, War
+  const defaultActiveRunes = () => ["cloud", "journey", "war"];
+
+  const RESOURCES = [
+    // Fighter / Rune Knight class features (annettu luokasta)
+    { id: "giantsMight", name: "Giant's Might", slots: 4, rest: "lr", source: "class",
+      effect: "BA: Large 1 min · ADV STR · +1 weapon die / osuma" },
+    { id: "secondWind", name: "Second Wind", slots: 4, rest: "lr", source: "class",
+      effect: "BA: 1d10+9 HP + Tactical Shift 25 ft (ei OA)" },
+    { id: "actionSurge", name: "Action Surge", slots: 1, rest: "sr", source: "class",
+      effect: "Extra Action tällä vuorolla (ei Magic)" },
+    { id: "indomitable", name: "Indomitable", slots: 1, rest: "lr", source: "class",
+      effect: "Reroll failed save + Fighter level (+9)" },
+    { id: "runicShield", name: "Runic Shield", slots: 4, rest: "lr", source: "class",
+      effect: "Reaktio: ally 60 ft osutaan → hyökkääjä reroll" },
+    // Opitut / kaiverrettavat riimut (ei class feature)
+    { id: "fireRune", name: "Fire Rune", slots: 1, rest: "sr", source: "rune", runeId: "fire",
+      effect: () => `Invoke: +2d6 fire · STR DC ${CHAR.saveDC} tai restrained` },
+    { id: "stoneRune", name: "Stone Rune", slots: 1, rest: "sr", source: "rune", runeId: "stone",
+      effect: () => `Reaktio: WIS DC ${CHAR.saveDC} tai charmed + incapacitated 1 min` },
+    { id: "cloudRune", name: "Cloud Rune", slots: 1, rest: "sr", source: "rune", runeId: "cloud",
+      effect: "Reaktio: siirrä osuma toiselle olennolle 30 ft" },
+    { id: "journeyRune", name: "Journey Rune", slots: 1, rest: "sr", source: "rune", runeId: "journey",
+      effect: "Reaktio (kun osutaan): Misty Step 30 ft" },
+    { id: "warRune", name: "War Rune", slots: 1, rest: "lr", source: "rune", runeId: "war",
+      effect: "BA: 18 temp HP + Haste 1 min (ei concentration)" },
+    { id: "lightRune", name: "Rune of Light", slots: 1, rest: "sr", source: "rune", runeId: "light",
+      effect: "Invoke: Detect undead 30 ft, 10 min" },
+    { id: "lostVeilRune", name: "Lost Veil", slots: 1, rest: "dawn", source: "rune", runeId: "lostVeil",
+      effect: "Veil Breach: self+≤2 ↔ Shadowfell" },
+    { id: "savageAttacker", name: "Savage Attacker", slots: 1, rest: "turn", source: "feat",
+      effect: "1×/vuoro: reroll weapon damage, valitse parempi" },
+    { id: "defensiveDuelist", name: "Defensive Duelist", slots: 1, rest: "round", source: "feat",
+      effect: "Reaktio: +4 AC melee → vuoron loppuun (AC 21)" },
+    { id: "web", name: "Web (Cloak)", slots: 1, rest: "lr", source: "item",
+      effect: "Cloak of Arachnida: 20 ft cube Web (restrain)" },
+    { id: "heroicInspiration", name: "Heroic Inspiration", slots: 1, rest: "lr", source: "other",
+      effect: "Reroll mikä tahansa d20 (1×)" },
+  ];
+
+  const RESOURCE_SOURCE_ORDER = ["class", "rune", "feat", "item", "other"];
+  const RESOURCE_SOURCE_LABEL = {
+    class: "Class · Fighter / Rune Knight",
+    rune: "Riimu · opittu / kaiverrettu",
+    feat: "Feat",
+    item: "Magic item",
+    other: "Muu",
+  };
+  const RESOURCE_SOURCE_BADGE = {
+    class: "Class",
+    rune: "Riimu",
+    feat: "Feat",
+    item: "Item",
+    other: "Muu",
+  };
+  const RESOURCE_REST_BADGE = {
+    lr: "LR",
+    sr: "SR",
+    dawn: "Dawn",
+    turn: "Vuoro",
+    round: "Round",
+  };
+
+  const defaultBuffs = () => ({
+    giantsMight: false,
+    warHaste: false,
+    warPassive: false, // derived from active War rune
+    fireInvoke: false,
+    advantage: false,
+    attackAction: true,
+    nick: true,
+    edw: true,
+    actionSurge: false,
+    secondWindBA: false,
+    activateGM: false,
+    activateWar: false,
+    defensiveDuelist: false,
+  });
+
+  const defaultUsed = () => {
+    const u = {};
+    RESOURCES.forEach((r) => { u[r.id] = 0; });
+    return u;
+  };
+
+  function isRuneActive(runeId) {
+    return state.activeRunes.includes(runeId);
+  }
+
+  function syncRuneBuffs() {
+    // War passive only if War inscribed
+    state.buffs.warPassive = isRuneActive("war");
+    if (!isRuneActive("war")) {
+      state.buffs.warHaste = false;
+      state.buffs.activateWar = false;
+      if (state.combat) state.combat.hasteRoundsLeft = 0;
+    }
+    if (!isRuneActive("fire")) {
+      state.buffs.fireInvoke = false;
+    }
+  }
+
+  const DURATION_ROUNDS_1MIN = 10; // 1 min ≈ 10 roundia (6 s / round)
+
+  function defaultCombat() {
+    return {
+      fingerprint: "",
+      attackResults: {}, // id -> "hit" | "miss"
+      tmOverrides: {}, // id -> "push" | "sap" | "slow"
+      vexAdvCarry: false, // Vex ADV jatkuu seuraavalle vuorolle
+      pendingCrit: false, // d20 crit → next weapon damage doubles dice
+      actionMode: "attack", // attack | move | hide | dash
+      usedBonus: null,
+      usedReaction: null,
+      bonusSpentResource: null,
+      reactionSpentResource: null,
+      surgeSpentResource: null,
+      round: 1,
+      hasteRoundsLeft: 0,
+      gmRoundsLeft: 0,
+    };
+  }
+
+  function getEncounterRound() {
+    return Math.max(1, state.combat.round || 1);
+  }
+
+  /** Säilytä encounter-round + duration-laskurit kun vuorotaulu nollataan */
+  function preserveEncounterTimers(nextCombat) {
+    nextCombat.round = getEncounterRound();
+    nextCombat.hasteRoundsLeft = Math.max(0, state.combat.hasteRoundsLeft || 0);
+    nextCombat.gmRoundsLeft = Math.max(0, state.combat.gmRoundsLeft || 0);
+    return nextCombat;
+  }
+
+  function tickDurationBuffs() {
+    if (state.buffs.warHaste) {
+      state.combat.hasteRoundsLeft = Math.max(0, (state.combat.hasteRoundsLeft || 0) - 1);
+      if (state.combat.hasteRoundsLeft <= 0) {
+        state.combat.hasteRoundsLeft = 0;
+        state.buffs.warHaste = false;
+        state.buffs.activateWar = false;
+      }
+    } else {
+      state.combat.hasteRoundsLeft = 0;
+    }
+
+    if (state.buffs.giantsMight) {
+      state.combat.gmRoundsLeft = Math.max(0, (state.combat.gmRoundsLeft || 0) - 1);
+      if (state.combat.gmRoundsLeft <= 0) {
+        state.combat.gmRoundsLeft = 0;
+        state.buffs.giantsMight = false;
+        state.buffs.activateGM = false;
+      }
+    } else {
+      state.combat.gmRoundsLeft = 0;
+    }
+  }
+
+  function advanceEncounterRound() {
+    state.combat.round = getEncounterRound() + 1;
+    tickDurationBuffs();
+  }
+
+  function resetEncounterTimers() {
+    state.combat.round = 1;
+    state.combat.hasteRoundsLeft = 0;
+    state.combat.gmRoundsLeft = 0;
+  }
+
+  const ACTION_MODES = [
+    { id: "attack", label: "Hyökkäys", sub: "Attack Action · lyönnit" },
+    { id: "move", label: "Liikkuminen", sub: "Vain liike · 1× speed" },
+    { id: "hide", label: "Hiipiminen", sub: "Hide · Stealth-check" },
+    { id: "dash", label: "Juokseminen", sub: "Dash · 2× speed" },
+  ];
+
+  function getActionMode() {
+    const m = state.combat.actionMode;
+    return ACTION_MODES.some((x) => x.id === m) ? m : "attack";
+  }
+
+  /** Perusnopeus (Journey + Haste), ennen Dashia */
+  function getWalkSpeed() {
+    let speed = CHAR.speedBase + (isRuneActive("journey") ? CHAR.speedJourney : 0);
+    if (state.buffs.warHaste && isRuneActive("war")) speed *= 2;
+    return speed;
+  }
+
+  /** Vuoron liikkumisbudjetti Action-valinnan mukaan */
+  function getTurnMoveBudget() {
+    const walk = getWalkSpeed();
+    const mode = getActionMode();
+    if (mode === "dash") return walk * 2;
+    return walk;
+  }
+
+  function getSpeedLabel() {
+    const walk = getWalkSpeed();
+    const budget = getTurnMoveBudget();
+    const mode = getActionMode();
+    if (mode === "dash") return `${budget} (Dash)`;
+    return String(budget);
+  }
+
+  let state = {
+    loadout: defaultLoadout(),
+    activeRunes: defaultActiveRunes(),
+    buffs: defaultBuffs(),
+    used: defaultUsed(),
+    combat: defaultCombat(),
+    resourceSort: { key: "source", dir: 1 },
+    resourceFilter: "all",
+  };
+
+  const RESOURCE_REST_SORT = { turn: 0, round: 1, sr: 2, lr: 3, dawn: 4 };
+  const RESOURCE_SOURCE_SORT = { class: 0, rune: 1, feat: 2, item: 3, other: 4 };
+  syncRuneBuffs();
+
+  function resourceRemaining(id) {
+    const r = RESOURCES.find((x) => x.id === id);
+    if (!r) return 0;
+    return Math.max(0, r.slots - (state.used[id] || 0));
+  }
+
+  /** Display-only slot pips for BA/Reaction cards (filled = remaining) */
+  function resourcePipsHtml(resourceId) {
+    const r = RESOURCES.find((x) => x.id === resourceId);
+    if (!r) return "";
+    const used = state.used[resourceId] || 0;
+    const left = Math.max(0, r.slots - used);
+    const cells = Array.from({ length: r.slots }, (_, i) =>
+      `<span class="card-pip${i < left ? " on" : ""}"></span>`
+    ).join("");
+    return `<span class="card-pips" title="${left}/${r.slots} jäljellä · täytetty = käytettävissä" aria-label="${left} jäljellä, ${r.slots} yhteensä">${cells}</span>`;
+  }
+
+  function spendResourceOnce(id) {
+    const r = RESOURCES.find((x) => x.id === id);
+    if (!r) return false;
+    if ((state.used[id] || 0) >= r.slots) return false;
+    state.used[id] = (state.used[id] || 0) + 1;
+    return true;
+  }
+
+  function unspendResourceOnce(id) {
+    if ((state.used[id] || 0) > 0) {
+      state.used[id] -= 1;
+      return true;
+    }
+    return false;
+  }
+
+  function combatFingerprint() {
+    const L = normalizeLoadout(state.loadout);
+    const b = state.buffs;
+    return [
+      L.main, L.off, L.grip,
+      getActionMode(),
+      b.attackAction ? 1 : 0,
+      b.nick ? 1 : 0,
+      b.warHaste ? 1 : 0,
+      b.actionSurge ? 1 : 0,
+      b.giantsMight ? 1 : 0,
+      state.activeRunes.slice().sort().join(","),
+    ].join("|");
+  }
+
+  function ensureCombatSynced() {
+    const fp = combatFingerprint();
+    if (!state.combat.attackResults) state.combat.attackResults = {};
+    if (!state.combat.tmOverrides) state.combat.tmOverrides = {};
+    if (state.combat.fingerprint !== fp) {
+      state.combat.fingerprint = fp;
+      state.combat.attackResults = {};
+      state.combat.tmOverrides = {};
+    }
+  }
+
+  function getNativeMastery(hit, profile) {
+    // Nick-mastery näkyy vain Nick Light -extralla (ei Extra Attack -lyönnillä)
+    if (hit.tag === "Nick") return "Nick";
+    if (hit.tag === "Vex" || profile.mastery === "Vex") return "Vex";
+    if (hit.tag === "Sap" || profile.mastery === "Sap") return "Sap";
+    if (profile.mastery === "Nick") return "";
+    return profile.mastery || "";
+  }
+
+  function getTmOverride(cardId) {
+    const ov = (state.combat.tmOverrides || {})[cardId];
+    return ov === "push" || ov === "sap" || ov === "slow" ? ov : null;
+  }
+
+  function getEffectiveMastery(card) {
+    const ov = getTmOverride(card.id);
+    if (ov === "push") return "Push";
+    if (ov === "sap") return "Sap";
+    if (ov === "slow") return "Slow";
+    return card.nativeMastery || card.mastery || "";
+  }
+
+  function setTmOverride(cardId, value) {
+    ensureCombatSynced();
+    if (!state.combat.tmOverrides) state.combat.tmOverrides = {};
+    if (!value) delete state.combat.tmOverrides[cardId];
+    else state.combat.tmOverrides[cardId] = value;
+
+    // Jos Nick-aseen Action-lyönti vaihdettiin pois Nickistä, Nick-extra putoaa
+    const nickLive = filterNickByTacticalMaster(buildRawCombatAttackCards()).some((c) => c.tag === "Nick");
+    if (!nickLive) {
+      Object.keys(state.combat.attackResults || {}).forEach((id) => {
+        if (id.includes("-Nick-")) delete state.combat.attackResults[id];
+      });
+      Object.keys(state.combat.tmOverrides || {}).forEach((id) => {
+        if (id.includes("-Nick-")) delete state.combat.tmOverrides[id];
+      });
+    }
+    syncVexAdvCarry();
+    save();
+    renderAll();
+  }
+
+  /** Attack cards for Action (+ Nick) + Haste + Surge + Dual Wield BA */
+  function buildRawCombatAttackCards() {
+    const meta = getLoadoutMeta(state.loadout);
+    const buffs = effectiveBuffs(state.buffs, meta);
+    const cards = [];
+    let n = 0;
+
+    function pushHit(hit, sourceLabel) {
+      n += 1;
+      const profile = getWeaponProfile(hit.weaponId, hit.twoHanded);
+      const parts = weaponDamageParts(hit, { ...buffs, fireInvoke: false });
+      const nativeMastery = getNativeMastery(hit, profile);
+      const id = `atk-${n}-${hit.weaponId}-${hit.tag || "x"}-${sourceLabel}`;
+      cards.push({
+        id,
+        kind: "attack",
+        weaponId: hit.weaponId,
+        sourceLabel,
+        nativeMastery,
+        mastery: nativeMastery,
+        tag: hit.tag || "",
+        damageParts: parts,
+        damageSpec: partsToDiceSpec(parts, false),
+        damageSpecCrit: partsToDiceSpec(parts, true),
+        damageLabel: partsFormula(parts),
+        title: `${n}. ${profile.short}`,
+        sub: [sourceLabel, partsFormula(parts), `to hit +${CHAR.toHit}`]
+          .filter(Boolean).join(" · "),
+      });
+    }
+
+    if (buffs.attackAction) {
+      buildActionAttacks(meta, buffs.nick).forEach((a) => pushHit(a, "Action"));
+    }
+    if (buffs.warHaste) {
+      const h = pickHasteWeapon(meta);
+      pushHit({ weaponId: h.id, twoHanded: h.twoHanded, tag: "Haste" }, "Haste");
+    }
+    if (meta.canEdw && typeof state.combat.usedBonus === "string" && state.combat.usedBonus.startsWith("dual:")) {
+      const wid = state.combat.usedBonus.slice("dual:".length);
+      if (WEAPONS[wid]) {
+        const m = WEAPONS[wid].mastery;
+        pushHit({
+          weaponId: wid,
+          twoHanded: false,
+          tag: m === "Vex" ? "Vex" : m === "Sap" ? "Sap" : "Dual Wield",
+        }, "Dual Wield (BA)");
+      }
+    }
+    if (buffs.actionSurge && buffs.attackAction) {
+      buildActionAttacks(meta, buffs.nick).forEach((a) => pushHit(a, "Action Surge"));
+    }
+    return cards;
+  }
+
+  /** Nick-extra vain jos Nick-korttia ei ole TM-vaihdettu pois Nickistä */
+  function filterNickByTacticalMaster(cards) {
+    const nickCard = cards.find((c) => c.tag === "Nick");
+    if (!nickCard) return cards;
+    if (getEffectiveMastery(nickCard) === "Nick") return cards;
+    return cards.filter((c) => c.tag !== "Nick");
+  }
+
+  function renumberAttackCards(cards) {
+    let actionN = 0;
+    let surgeN = 0;
+    return cards.map((c) => {
+      const short = (c.title || "")
+        .replace(/^\d+\.\s*/, "")
+        .replace(/^Surge \d+\.\s*/, "")
+        .replace(/^Haste ·\s*/, "")
+        .replace(/^Dual Wield ·\s*/, "");
+      let title;
+      if (c.sourceLabel === "Action") {
+        actionN += 1;
+        title = `${actionN}. ${short}`;
+      } else if (c.sourceLabel === "Action Surge") {
+        surgeN += 1;
+        title = `Surge ${surgeN}. ${short}`;
+      } else if (c.sourceLabel === "Haste") {
+        title = `Haste · ${short}`;
+      } else if (c.sourceLabel === "Dual Wield (BA)") {
+        title = `Dual Wield · ${short}`;
+      } else {
+        title = short;
+      }
+      return { ...c, title };
+    });
+  }
+
+  function getCombatAttackCards() {
+    if (getActionMode() !== "attack") return [];
+    const raw = renumberAttackCards(filterNickByTacticalMaster(buildRawCombatAttackCards()));
+    return annotateMasteryCascade(raw, !!state.combat.vexAdvCarry).cards;
+  }
+
+  /** Action-sarake: ei Dual Wield BA -lyöntiä (se näytetään Bonusissa) */
+  function getActionColumnAttacks() {
+    return getCombatAttackCards().filter((c) => c.sourceLabel !== "Dual Wield (BA)");
+  }
+
+  function getDualWieldCombatCard() {
+    return getCombatAttackCards().find((c) => c.sourceLabel === "Dual Wield (BA)") || null;
+  }
+
+  function attackGrantsVex(card) {
+    return getEffectiveMastery(card) === "Vex";
+  }
+
+  /**
+   * startingCarry: ADV jäljellä edelliseltä vuorolta
+   * Palauttaa cards + vexAdvCarry (onko ADV vielä käyttämättä vuoron jälkeen)
+   */
+  function annotateMasteryCascade(cards, startingCarry) {
+    let arm = !!startingCarry;
+    let carryHeldByUnresolved = false;
+    let startingCarryApplied = false;
+
+    const annotated = cards.map((card) => {
+      const result = state.combat.attackResults[card.id] || null;
+      const reminders = [];
+      const chips = [];
+      const effective = getEffectiveMastery(card);
+      const tmOverride = getTmOverride(card.id);
+      const grantsVex = effective === "Vex";
+
+      if (effective === "Vex") chips.push("vex");
+      if (effective === "Nick") chips.push("nick");
+      if (effective === "Sap") chips.push("sap");
+      if (effective === "Push") chips.push("push");
+      if (effective === "Slow") chips.push("slow");
+
+      const hasAdv = arm;
+      const advFromPrevTurn = hasAdv && !!startingCarry && !startingCarryApplied;
+      if (hasAdv) {
+        startingCarryApplied = true;
+        chips.push("adv");
+      }
+
+      let vexGranted = false;
+      if (result === "hit" && grantsVex) {
+        arm = true;
+        vexGranted = true;
+      } else if (result === "hit" || result === "miss") {
+        arm = false;
+      } else if (hasAdv) {
+        carryHeldByUnresolved = true;
+        arm = false;
+      }
+
+      let tmEffect = "";
+      if (result === "hit") {
+        if (effective === "Push") tmEffect = "Push 10 ft";
+        else if (effective === "Slow") tmEffect = "Speed −10 ft (seuraavaan vuoroon)";
+        else if (effective === "Sap") tmEffect = "Sap: disadvantage vihollisen seuraavaan hyökkäykseen";
+      }
+
+      return {
+        ...card,
+        mastery: effective,
+        result,
+        hasAdv,
+        advFromPrevTurn,
+        grantsVex,
+        vexGranted,
+        tmOverride,
+        tmEffect,
+        chips,
+        reminders,
+      };
+    }).map((card, _i, arr) => {
+      const turnSap = arr.some((c) =>
+        c.result === "hit" && getEffectiveMastery(c) === "Sap"
+      );
+      return { ...card, turnSap };
+    });
+
+    const vexAdvCarry = carryHeldByUnresolved || arm;
+    return { cards: annotated, vexAdvCarry };
+  }
+
+  function syncVexAdvCarry() {
+    const raw = renumberAttackCards(filterNickByTacticalMaster(buildRawCombatAttackCards()));
+    const { vexAdvCarry } = annotateMasteryCascade(raw, !!state.combat.vexAdvCarry);
+    state.combat.vexAdvCarry = !!vexAdvCarry;
+  }
+
+  function setAttackResult(id, result) {
+    ensureCombatSynced();
+    if (state.combat.attackResults[id] === result) {
+      delete state.combat.attackResults[id];
+    } else {
+      state.combat.attackResults[id] = result;
+    }
+    syncVexAdvCarry();
+    save();
+    renderAll();
+  }
+
+  function getDualWieldBaWeapons(meta) {
+    if (getActionMode() !== "attack") return [];
+    if (!meta.canEdw || !meta.off) return [];
+    // Molemmat kädet ovat validit Dual Wield -BA -kohteet (ei 2H)
+    const list = [];
+    const seen = new Set();
+    [meta.main, meta.off].forEach((w) => {
+      if (!w || w.twoHanded) return;
+      if (seen.has(w.id)) return;
+      seen.add(w.id);
+      list.push(w);
+    });
+    return list;
+  }
+
+  function getBonusActionCards() {
+    const meta = getLoadoutMeta(state.loadout);
+    const cards = [];
+    const buffsEff = effectiveBuffs(state.buffs, meta);
+
+    // DDB-tyyli: Dual Wield BA = erillinen kortti per ase
+    getDualWieldBaWeapons(meta).forEach((w) => {
+      const parts = weaponDamageParts(
+        { weaponId: w.id, twoHanded: false },
+        { ...buffsEff, fireInvoke: false }
+      );
+      const mastery = w.mastery || "";
+      cards.push({
+        id: `dual:${w.id}`,
+        title: w.id === "longsword" ? "Longsword (Dual Wield)" : `${w.short} (Dual Wield)`,
+        sub: `${partsFormula(parts)} · ${mastery ? mastery + " · " : ""}Enhanced Dual Wielding`,
+        resourceId: null,
+        onUse() {
+          state.buffs.edw = true;
+          state.buffs.activateGM = false;
+          state.buffs.activateWar = false;
+          state.buffs.secondWindBA = false;
+        },
+        onUndo() {},
+      });
+    });
+
+    if (resourceRemaining("giantsMight") > 0 || state.combat.usedBonus === "giantsMight") {
+      cards.push({
+        id: "giantsMight",
+        title: "Giant's Might",
+        sub: `Large · ADV STR · 1 min (${DURATION_ROUNDS_1MIN}r)`,
+        resourceId: "giantsMight",
+        onUse() {
+          state.buffs.giantsMight = true;
+          state.buffs.activateGM = true;
+          state.buffs.activateWar = false;
+          state.buffs.secondWindBA = false;
+          state.buffs.edw = false;
+          state.combat.gmRoundsLeft = DURATION_ROUNDS_1MIN;
+        },
+        onUndo() {
+          state.buffs.activateGM = false;
+          state.buffs.giantsMight = false;
+          state.combat.gmRoundsLeft = 0;
+        },
+      });
+    }
+
+    if (isRuneActive("war") && (resourceRemaining("warRune") > 0 || state.combat.usedBonus === "warRune")) {
+      cards.push({
+        id: "warRune",
+        title: `${CHAR.tempHpWar} temp HP + Haste`,
+        sub: `War Rune · 1 min (${DURATION_ROUNDS_1MIN} roundia)`,
+        resourceId: "warRune",
+        isRune: true,
+        runeKey: "war",
+        onUse() {
+          state.buffs.warHaste = true;
+          state.buffs.warPassive = true;
+          state.buffs.activateWar = true;
+          state.buffs.activateGM = false;
+          state.buffs.secondWindBA = false;
+          state.buffs.edw = false;
+          state.combat.hasteRoundsLeft = DURATION_ROUNDS_1MIN;
+        },
+        onUndo() {
+          state.buffs.activateWar = false;
+          state.buffs.warHaste = false;
+          state.combat.hasteRoundsLeft = 0;
+        },
+      });
+    }
+
+    if (resourceRemaining("secondWind") > 0 || state.combat.usedBonus === "secondWind") {
+      cards.push({
+        id: "secondWind",
+        title: "Second Wind",
+        sub: `${CHAR.secondWindHeal} HP + Tactical Shift 25 ft`,
+        resourceId: "secondWind",
+        onUse() {
+          state.buffs.secondWindBA = true;
+          state.buffs.activateGM = false;
+          state.buffs.activateWar = false;
+          state.buffs.edw = false;
+        },
+        onUndo() {
+          state.buffs.secondWindBA = false;
+        },
+      });
+    }
+
+    return cards;
+  }
+
+  function getReactionCards() {
+    const cards = [];
+
+    if (isRuneActive("cloud") && (resourceRemaining("cloudRune") > 0 || state.combat.usedReaction === "cloudRune")) {
+      cards.push({
+        id: "cloudRune",
+        title: "Redirect Attack",
+        sub: `Cloud Rune · toinen olento 30 ft`,
+        resourceId: "cloudRune",
+        isRune: true,
+        runeKey: "cloud",
+      });
+    }
+
+    if (resourceRemaining("defensiveDuelist") > 0 || state.combat.usedReaction === "defensiveDuelist") {
+      cards.push({
+        id: "defensiveDuelist",
+        title: "Defensive Duelist",
+        sub: `+${CHAR.pb} AC melee → AC ${CHAR.acDD} until next turn`,
+        resourceId: "defensiveDuelist",
+        onUse() { state.buffs.defensiveDuelist = true; },
+        onUndo() { state.buffs.defensiveDuelist = false; },
+      });
+    }
+
+    if (isRuneActive("journey") && (resourceRemaining("journeyRune") > 0 || state.combat.usedReaction === "journeyRune")) {
+      cards.push({
+        id: "journeyRune",
+        title: "Misty Step",
+        sub: `Journey Rune · 30 ft (kun osutaan)`,
+        resourceId: "journeyRune",
+        isRune: true,
+        runeKey: "journey",
+      });
+    }
+
+    if (resourceRemaining("runicShield") > 0 || state.combat.usedReaction === "runicShield") {
+      cards.push({
+        id: "runicShield",
+        title: "Force Reroll",
+        sub: `Runic Shield · ally 60 ft osutetaan`,
+        resourceId: "runicShield",
+        isRune: true,
+        runeKey: "runicShield",
+      });
+    }
+
+    if (isRuneActive("stone") && (resourceRemaining("stoneRune") > 0 || state.combat.usedReaction === "stoneRune")) {
+      cards.push({
+        id: "stoneRune",
+        title: "Incapacitate",
+        sub: `Stone Rune · WIS DC ${CHAR.saveDC}`,
+        resourceId: "stoneRune",
+        isRune: true,
+        runeKey: "stone",
+      });
+    }
+
+    cards.push({
+      id: "opportunityAttack",
+      title: "Opportunity Attack",
+      sub: "1 melee-isku kun vihollinen poistuu reachista",
+      resourceId: null,
+    });
+
+    return cards;
+  }
+
+  function toggleAttackCard(id) {
+    // legacy no-op replaced by setAttackResult
+    setAttackResult(id, state.combat.attackResults[id] === "hit" ? "miss" : "hit");
+  }
+
+  function clearBonusAttackDoneFlags() {
+    Object.keys(state.combat.attackResults || {}).forEach((id) => {
+      if (id.includes("Dual Wield") || id.includes("-EDW-") || id.includes("Bonus Action")) {
+        delete state.combat.attackResults[id];
+      }
+    });
+  }
+
+  function toggleBonusCard(card) {
+    ensureCombatSynced();
+    if (state.combat.usedBonus && state.combat.usedBonus !== card.id) return;
+
+    if (state.combat.usedBonus === card.id) {
+      if (state.combat.bonusSpentResource) {
+        unspendResourceOnce(state.combat.bonusSpentResource);
+        state.combat.bonusSpentResource = null;
+      }
+      if (card.onUndo) card.onUndo();
+      if (String(card.id).startsWith("dual:")) clearBonusAttackDoneFlags();
+      state.combat.usedBonus = null;
+    } else {
+      if (card.resourceId) {
+        if (!spendResourceOnce(card.resourceId)) return;
+        state.combat.bonusSpentResource = card.resourceId;
+      }
+      if (card.onUse) card.onUse();
+      state.combat.usedBonus = card.id;
+    }
+    save();
+    renderAll();
+  }
+
+  function toggleActionSurge() {
+    ensureCombatSynced();
+    if (state.buffs.actionSurge) {
+      if (state.combat.surgeSpentResource) {
+        unspendResourceOnce(state.combat.surgeSpentResource);
+        state.combat.surgeSpentResource = null;
+      }
+      Object.keys(state.combat.attackResults || {}).forEach((id) => {
+        if (id.includes("Action Surge")) delete state.combat.attackResults[id];
+      });
+      state.buffs.actionSurge = false;
+    } else {
+      if (resourceRemaining("actionSurge") <= 0) return;
+      if (!spendResourceOnce("actionSurge")) return;
+      state.combat.surgeSpentResource = "actionSurge";
+      state.buffs.actionSurge = true;
+    }
+    save();
+    renderAll();
+  }
+
+  function toggleSavageAttacker() {
+    ensureCombatSynced();
+    if ((state.used.savageAttacker || 0) > 0) {
+      unspendResourceOnce("savageAttacker");
+    } else if (!spendResourceOnce("savageAttacker")) {
+      return;
+    }
+    save();
+    renderAll();
+  }
+
+  function toggleReactionCard(card) {
+    ensureCombatSynced();
+    if (state.combat.usedReaction && state.combat.usedReaction !== card.id) return;
+
+    if (state.combat.usedReaction === card.id) {
+      if (state.combat.reactionSpentResource) {
+        unspendResourceOnce(state.combat.reactionSpentResource);
+        state.combat.reactionSpentResource = null;
+      }
+      if (card.onUndo) card.onUndo();
+      state.combat.usedReaction = null;
+    } else {
+      if (card.resourceId) {
+        if (!spendResourceOnce(card.resourceId)) return;
+        state.combat.reactionSpentResource = card.resourceId;
+      }
+      if (card.onUse) card.onUse();
+      state.combat.usedReaction = card.id;
+    }
+    save();
+    renderAll();
+  }
+
+  function resetCombatTurnBoard() {
+    // Laske Vex-ADV kanto ennen nollausta (viimeinen Vex-osuma / käyttämätön ADV)
+    syncVexAdvCarry();
+    const keepVex = !!state.combat.vexAdvCarry;
+    const keepMode = getActionMode();
+    state.buffs.actionSurge = false;
+    const next = defaultCombat();
+    preserveEncounterTimers(next);
+    state.combat = next;
+    state.combat.vexAdvCarry = keepVex;
+    state.combat.actionMode = keepMode;
+    state.combat.fingerprint = combatFingerprint();
+  }
+
+  /** Täysi nollaus: merkit, BA/Reaction, Vex-kanto, Action-tila */
+  function clearCombatBoardHard() {
+    if (state.combat.bonusSpentResource) {
+      unspendResourceOnce(state.combat.bonusSpentResource);
+    }
+    if (state.combat.reactionSpentResource) {
+      unspendResourceOnce(state.combat.reactionSpentResource);
+    }
+    if (state.combat.surgeSpentResource) {
+      unspendResourceOnce(state.combat.surgeSpentResource);
+    }
+    state.buffs.activateGM = false;
+    state.buffs.activateWar = false;
+    state.buffs.secondWindBA = false;
+    state.buffs.actionSurge = false;
+    state.buffs.fireInvoke = false;
+    state.buffs.defensiveDuelist = false;
+    state.buffs.edw = true;
+    state.buffs.attackAction = true;
+    state.used.savageAttacker = 0;
+    state.used.defensiveDuelist = 0;
+    const next = defaultCombat();
+    preserveEncounterTimers(next);
+    state.combat = next;
+    state.combat.fingerprint = combatFingerprint();
+  }
+
+  function renderCombat() {
+    ensureCombatSynced();
+    const root = document.getElementById("combatRoot");
+    root.innerHTML = "";
+
+    const attacks = getActionColumnAttacks();
+    const dualWieldHit = getDualWieldCombatCard();
+    const bonuses = getBonusActionCards();
+    const reactions = getReactionCards();
+
+    const surgeOn = !!state.buffs.actionSurge;
+    const surgeLeft = resourceRemaining("actionSurge");
+    const savageUsed = (state.used.savageAttacker || 0) > 0;
+    const savageLeft = resourceRemaining("savageAttacker");
+
+    const roundBar = document.createElement("div");
+    roundBar.className = "combat-round-bar";
+    const round = getEncounterRound();
+    const hasteLeft = state.buffs.warHaste ? Math.max(0, state.combat.hasteRoundsLeft || 0) : 0;
+    const gmLeft = state.buffs.giantsMight ? Math.max(0, state.combat.gmRoundsLeft || 0) : 0;
+    roundBar.innerHTML = `
+      <div class="round-controls">
+        <button type="button" class="round-btn" data-round="-1" title="Edellinen round" aria-label="Edellinen round">−</button>
+        <span class="round-label">Round <strong>${round}</strong></span>
+        <button type="button" class="round-btn" data-round="1" title="Seuraava round (sama kuin Uusi vuoro -tick)" aria-label="Seuraava round">+</button>
+      </div>
+      <span class="duration-chip${hasteLeft ? " on" : ""}" title="War Haste 1 min ≈ ${DURATION_ROUNDS_1MIN} roundia">
+        Haste ${hasteLeft ? `${hasteLeft}/${DURATION_ROUNDS_1MIN}` : "—"}
+      </span>
+      <span class="duration-chip gm${gmLeft ? " on" : ""}" title="Giant's Might 1 min ≈ ${DURATION_ROUNDS_1MIN} roundia">
+        Giant's Might ${gmLeft ? `${gmLeft}/${DURATION_ROUNDS_1MIN}` : "—"}
+      </span>`;
+    roundBar.querySelectorAll(".round-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const delta = Number(btn.getAttribute("data-round") || 0);
+        if (delta > 0) {
+          advanceEncounterRound();
+        } else if (delta < 0 && getEncounterRound() > 1) {
+          state.combat.round = getEncounterRound() - 1;
+        }
+        save();
+        renderAll();
+      });
+    });
+    root.appendChild(roundBar);
+
+    const topRow = document.createElement("div");
+    topRow.className = "combat-top-row";
+
+    const surgeBtn = document.createElement("button");
+    surgeBtn.type = "button";
+    surgeBtn.className = "combat-surge" + (surgeOn ? " done" : "") + (!surgeOn && surgeLeft <= 0 ? " locked" : "");
+    surgeBtn.innerHTML = `
+      <span class="card-title">Action Surge</span>
+      <span class="card-sub">${surgeOn
+        ? `Extra Action käytössä · +Attack Action · ${surgeLeft} jäljellä`
+        : `Extra Action (ei Magic) · ${surgeLeft} jäljellä · Short Rest`}</span>`;
+    if (surgeOn || surgeLeft > 0) {
+      surgeBtn.addEventListener("click", () => toggleActionSurge());
+    }
+    topRow.appendChild(surgeBtn);
+
+    const savageBtn = document.createElement("button");
+    savageBtn.type = "button";
+    savageBtn.className = "combat-surge savage" + (savageUsed ? " done" : "") + (!savageUsed && savageLeft <= 0 ? " locked" : "");
+    savageBtn.innerHTML = `
+      <span class="card-title">Savage Attacker</span>
+      <span class="card-sub">${savageUsed
+        ? "Käytetty tällä vuorolla · reroll weapon dmg tehty"
+        : "Muista: reroll weapon damage dice kerran / vuoro · valitse parempi"}</span>`;
+    if (savageUsed || savageLeft > 0) {
+      savageBtn.addEventListener("click", () => toggleSavageAttacker());
+    }
+    topRow.appendChild(savageBtn);
+
+    root.appendChild(topRow);
+
+    if (state.combat.pendingCrit) {
+      const critBanner = document.createElement("div");
+      critBanner.className = "crit-pending-banner";
+      critBanner.innerHTML = `CRITICAL valmis<span>Seuraava damage-heitto tuplaa weapon-nopat (ei flat / Fire Rune)</span>`;
+      root.appendChild(critBanner);
+    }
+
+    if (state.buffs.warHaste && isRuneActive("war") && (state.used.warRune || 0) > 0) {
+      const hasteLeftBanner = Math.max(0, state.combat.hasteRoundsLeft || 0);
+      const hasteBanner = document.createElement("div");
+      hasteBanner.className = "haste-active-banner";
+      hasteBanner.innerHTML = `
+        <div class="haste-active-text">
+          <strong>War Haste</strong>
+          <span>+1 Attack · ×2 speed · ${hasteLeftBanner}/${DURATION_ROUNDS_1MIN} roundia jäljellä (1 min)</span>
+        </div>
+        <button type="button" class="haste-dismiss" title="Poista Haste-buffi (ei palauta War Rune -käyttöä)">Poista</button>`;
+      hasteBanner.querySelector(".haste-dismiss").addEventListener("click", () => {
+        state.buffs.warHaste = false;
+        state.buffs.activateWar = false;
+        state.combat.hasteRoundsLeft = 0;
+        save();
+        renderAll();
+      });
+      root.appendChild(hasteBanner);
+    }
+
+    function appendAttackCard(grid, card) {
+      const box = document.createElement("div");
+      box.className = "combat-card attack";
+      if (card.sourceLabel === "Haste") box.classList.add("is-haste");
+      if (card.sourceLabel === "Dual Wield (BA)") box.classList.add("is-dual");
+      if (card.sourceLabel === "Action Surge") box.classList.add("is-surge");
+      if (card.result === "hit") box.classList.add("hit");
+      if (card.result === "miss") box.classList.add("miss");
+      if (card.hasAdv && !card.result) box.classList.add("has-adv");
+
+      const chips = (card.chips || []).filter((c) => c === "adv").map((c) => {
+        return `<span class="mastery-chip ${c}">ADV</span>`;
+      }).join("");
+
+      const rem = (card.reminders || []).map((r) =>
+        `<div class="${r.cls}">${r.text}</div>`
+      ).join("");
+
+      const nativeLabel = card.nativeMastery || "—";
+      const tm = card.tmOverride || "";
+      const tmRow = `
+        <div class="tm-row" title="Tactical Master: vaihda mastery tällä lyönnillä">
+          <button type="button" class="tm-btn native${!tm ? " active" : ""}" data-tm="">${nativeLabel}</button>
+          <button type="button" class="tm-btn${tm === "push" ? " active" : ""}" data-tm="push">Push</button>
+          <button type="button" class="tm-btn${tm === "sap" ? " active" : ""}" data-tm="sap">Sap</button>
+          <button type="button" class="tm-btn${tm === "slow" ? " active" : ""}" data-tm="slow">Slow</button>
+        </div>`;
+
+      const hitSpec = attackHitSpec(!!card.hasAdv && !card.result);
+      const hitLabel = card.hasAdv && !card.result
+        ? `Hit Adv +${CHAR.toHit}`
+        : `Hit +${CHAR.toHit}`;
+      const pending = !!state.combat.pendingCrit;
+      const dmgSpecNormal = card.damageSpec || "1d6+6";
+      const dmgSpecCrit = card.damageSpecCrit || partsToDiceSpec(card.damageParts || [], true);
+      const dmgSpec = pending ? dmgSpecCrit : dmgSpecNormal;
+      const dmgLabel = `${(card.title || "").replace(/^\d+\.\s*/, "")} dmg`;
+      const savageHint = resourceRemaining("savageAttacker") > 0
+        ? `<div class="savage-hint">Savage Attacker vapaa — reroll weapon dmg</div>`
+        : "";
+
+      let sourceBanner = "";
+      let sourceChip = "";
+      if (card.sourceLabel === "Haste") {
+        sourceBanner = `<div class="source-banner haste">War Haste<span>War Rune · +1 Attack Action -isku (ei Extra Attack / Nick)</span></div>`;
+        sourceChip = `<span class="mastery-chip haste">Haste</span>`;
+      } else if (card.sourceLabel === "Dual Wield (BA)") {
+        sourceBanner = `<div class="source-banner dual">Bonus Action<span>Enhanced Dual Wielding · 4. lyönti</span></div>`;
+        sourceChip = `<span class="mastery-chip dual">BA · Dual Wield</span>`;
+      } else if (card.sourceLabel === "Action Surge") {
+        sourceBanner = `<div class="source-banner surge">Action Surge</div>`;
+        sourceChip = `<span class="mastery-chip surge">Surge</span>`;
+      }
+
+      box.innerHTML = `
+        ${sourceBanner}
+        ${card.hasAdv && !card.result ? `<div class="adv-banner">ADVANTAGE${card.advFromPrevTurn ? " · edellinen vuoro" : ""}<span class="adv-sub">2d20, valitse korkeampi</span></div>` : ""}
+        <span class="card-title">${card.title}</span>
+        <div>${chips}${sourceChip}</div>
+        ${tmRow}
+        <div class="card-reminders">${rem}</div>
+        ${card.vexGranted ? `<div class="vex-granted">Vex osuma → Advantage seuraavaan lyöntiin</div>` : ""}
+        ${card.tmEffect ? `<div class="tm-effect">${card.tmEffect}</div>` : ""}
+        ${savageHint}
+        <div class="card-roll-row">
+          <button type="button" class="roll-hit" title="${hitSpec}">${hitLabel}</button>
+          <button type="button" class="roll-dmg${pending ? " crit-pending" : ""}" title="${dmgSpec}">Dmg ${dmgSpec}${pending ? " · CRIT" : ""}</button>
+        </div>
+        <div class="hit-miss-row">
+          <button type="button" class="hm-hit${card.result === "hit" ? " active" : ""}" title="Osuma" aria-label="Osuma">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13.5 L10 19.5 L20 6.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="hm-miss${card.result === "miss" ? " active" : ""}" title="Ohi" aria-label="Ohi">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7 L17 17 M17 7 L7 17" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>`;
+      box.querySelectorAll(".tm-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const v = btn.getAttribute("data-tm") || "";
+          setTmOverride(card.id, v || null);
+        });
+      });
+      box.querySelector(".roll-hit").addEventListener("click", (e) => {
+        e.stopPropagation();
+        rollForCard(hitSpec, `${card.title} · ${hitLabel}`);
+      });
+      box.querySelector(".roll-dmg").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const wasCrit = !!state.combat.pendingCrit;
+        const spec = wasCrit ? dmgSpecCrit : dmgSpecNormal;
+        rollForCard(spec, wasCrit ? `${dmgLabel} · CRIT` : dmgLabel);
+        if (wasCrit) consumePendingCrit();
+      });
+      box.querySelector(".hm-hit").addEventListener("click", (e) => {
+        e.stopPropagation();
+        setAttackResult(card.id, "hit");
+      });
+      box.querySelector(".hm-miss").addEventListener("click", (e) => {
+        e.stopPropagation();
+        setAttackResult(card.id, "miss");
+      });
+      grid.appendChild(box);
+    }
+
+    function section(title, cards, mode, colClass) {
+      const wrap = document.createElement("div");
+      wrap.className = `combat-section ${colClass || ""}`;
+      const h = document.createElement("h3");
+      h.textContent = title;
+      wrap.appendChild(h);
+      const grid = document.createElement("div");
+      grid.className = "card-grid";
+
+      const showDualHit = mode === "bonus" && dualWieldHit;
+      if (!cards.length && !showDualHit) {
+        const empty = document.createElement("p");
+        empty.className = "combat-status";
+        empty.textContent = "Ei vaihtoehtoja tällä setupilla / resursseilla.";
+        wrap.appendChild(empty);
+        return wrap;
+      }
+
+      if (showDualHit) appendAttackCard(grid, dualWieldHit);
+
+      cards.forEach((card) => {
+        if (mode === "attack") {
+          appendAttackCard(grid, card);
+          return;
+        }
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        const pips = card.resourceId ? resourcePipsHtml(card.resourceId) : "";
+        btn.className = `combat-card ${mode}${card.isRune ? " is-rune" : ""}${pips ? " has-pips" : ""}`;
+        btn.innerHTML = `
+          <span class="card-title">${card.title}</span>
+          ${card.isRune ? runeMarkHtml(card.runeKey, card.sub?.split("·")[0]?.trim() || "Rune") : ""}
+          <span class="card-sub">${card.sub}</span>
+          ${pips}`;
+
+        if (mode === "bonus") {
+          const used = state.combat.usedBonus;
+          if (used === card.id) btn.classList.add("done");
+          else if (used && used !== card.id) btn.classList.add("locked");
+          btn.addEventListener("click", () => toggleBonusCard(card));
+        } else if (mode === "reaction") {
+          const used = state.combat.usedReaction;
+          if (used === card.id) btn.classList.add("done");
+          else if (used && used !== card.id) btn.classList.add("locked");
+          btn.addEventListener("click", () => toggleReactionCard(card));
+        }
+
+        grid.appendChild(btn);
+      });
+      wrap.appendChild(grid);
+
+      const status = document.createElement("p");
+      status.className = "combat-status";
+      if (mode === "attack") {
+        const actionOnly = attacks.filter((c) => c.sourceLabel === "Action");
+        const hasteOn = attacks.some((c) => c.sourceLabel === "Haste");
+        const surgeOnCol = attacks.some((c) => c.sourceLabel === "Action Surge");
+        const resolved = actionOnly.filter((c) => c.result).length;
+        const hits = actionOnly.filter((c) => c.result === "hit").length;
+        const advNext = attacks.find((c) => c.hasAdv && !c.result);
+        const extras = [
+          hasteOn ? "+ Haste" : null,
+          surgeOnCol ? "+ Surge" : null,
+          dualWieldHit ? "+ Dual Wield BA" : null,
+        ].filter(Boolean).join(" · ");
+        status.textContent = advNext
+          ? `${resolved} / ${actionOnly.length} Action · ${hits} osumaa · SEURAAVA: ADVANTAGE${extras ? " · " + extras : ""}`
+          : `${resolved} / ${actionOnly.length} Action merkitty · ${hits} osumaa${extras ? " · " + extras : ""}`;
+        if (advNext) status.style.color = "var(--good)";
+        status.style.fontWeight = advNext ? "700" : "";
+      } else if (mode === "bonus") {
+        status.textContent = state.combat.usedBonus
+          ? `Käytetty: ${bonuses.find((c) => c.id === state.combat.usedBonus)?.title || state.combat.usedBonus}`
+          : "Valitse yksi";
+      } else {
+        status.textContent = state.combat.usedReaction
+          ? `Käytetty: ${reactions.find((c) => c.id === state.combat.usedReaction)?.title || state.combat.usedReaction}`
+          : "Valitse yksi";
+      }
+      wrap.appendChild(status);
+      return wrap;
+    }
+
+    const cols = document.createElement("div");
+    cols.className = "combat-columns";
+    const actionOnlyCount = attacks.filter((c) => c.sourceLabel === "Action").length;
+    const hasteOnCol = attacks.some((c) => c.sourceLabel === "Haste");
+    const actionTitle = hasteOnCol
+      ? `Action (${actionOnlyCount}) + Haste`
+      : `Action (${actionOnlyCount})`;
+    cols.appendChild(section(actionTitle, attacks, "attack", "col-action"));
+    cols.appendChild(section(
+      dualWieldHit ? "Bonus Action · Dual Wield" : "Bonus Action",
+      bonuses,
+      "bonus",
+      "col-bonus"
+    ));
+    cols.appendChild(section("Reaction", reactions, "reaction", "col-reaction"));
+    root.appendChild(cols);
+  }
+
+  // ——— math helpers ———
+  function dieAvg(faces) { return (faces + 1) / 2; }
+  function dieMin(faces) { return 1; }
+  function dieMax(faces) { return faces; }
+
+  function weaponDamageParts(hit, buffs) {
+    const profile = typeof hit === "string"
+      ? getWeaponProfile(hit, false)
+      : getWeaponProfile(hit.weaponId, hit.twoHanded);
+    const faces = profile.faces;
+    const parts = [];
+    // 5e crit: double weapon (and GM) dice only — not flat mods, not Fire Rune
+    parts.push({ label: `1d${faces}`, faces, count: 1, flat: 0, doublesOnCrit: true });
+    parts.push({ label: `+${CHAR.flatDamage}`, faces: 0, count: 0, flat: CHAR.flatDamage });
+    if (buffs.giantsMight) {
+      parts.push({ label: `+1d${faces} Giant's Might`, faces, count: 1, flat: 0, doublesOnCrit: true });
+    }
+    if (buffs.fireInvoke) {
+      parts.push({ label: "+2d6 fire", faces: 6, count: 2, flat: 0, doublesOnCrit: false });
+    }
+    return parts;
+  }
+
+  function partsMin(parts) {
+    return parts.reduce((s, p) => s + p.flat + p.count * dieMin(p.faces || 1), 0);
+  }
+  function partsAvg(parts) {
+    return parts.reduce((s, p) => s + p.flat + p.count * (p.faces ? dieAvg(p.faces) : 0), 0);
+  }
+  function partsMax(parts) {
+    return parts.reduce((s, p) => s + p.flat + p.count * dieMax(p.faces || 1), 0);
+  }
+  function partsFormula(parts) {
+    return parts.map((p) => p.label).join(" ");
+  }
+
+  /** Convert damage parts → dice notation e.g. 2d6+6. crit doubles doublesOnCrit parts. */
+  function partsToDiceSpec(parts, crit = false) {
+    const byFace = {};
+    let flat = 0;
+    (parts || []).forEach((p) => {
+      flat += p.flat || 0;
+      if (p.faces && p.count) {
+        const n = crit && p.doublesOnCrit ? p.count * 2 : p.count;
+        byFace[p.faces] = (byFace[p.faces] || 0) + n;
+      }
+    });
+    const dice = Object.keys(byFace)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map((f) => `${byFace[f]}d${f}`)
+      .join("+");
+    if (!dice) return flat ? `${flat}` : "1d1";
+    if (!flat) return dice;
+    return flat > 0 ? `${dice}+${flat}` : `${dice}${flat}`;
+  }
+
+  /** Double every NdX group in a simple notation (flat mods untouched). */
+  function doubleDiceInSpec(spec) {
+    return String(spec).replace(/(\d*)d(\d+)/gi, (_, n, f) => {
+      const c = n === "" || n == null ? 1 : parseInt(n, 10);
+      return `${c * 2}d${f}`;
+    });
+  }
+
+  function setPendingCrit(on) {
+    ensureCombatSynced();
+    const next = !!on;
+    if (!!state.combat.pendingCrit === next) return;
+    state.combat.pendingCrit = next;
+    save();
+    renderAll();
+  }
+
+  function consumePendingCrit() {
+    if (!state.combat.pendingCrit) return false;
+    state.combat.pendingCrit = false;
+    save();
+    renderAll();
+    return true;
+  }
+
+  // Bridge for dice module (separate IIFE)
+  window.kaelanOnToHitFlag = (flag) => setPendingCrit(flag === "crit");
+  window.kaelanConsumePendingCrit = () => consumePendingCrit();
+  window.kaelanHasPendingCrit = () => !!state.combat.pendingCrit;
+
+  function attackHitSpec(hasAdv) {
+    return hasAdv ? `2d20kh1+${CHAR.toHit}` : `1d20+${CHAR.toHit}`;
+  }
+
+  function rollForCard(spec, label) {
+    if (window.kaelanDice && typeof window.kaelanDice.roll === "function") {
+      window.kaelanDice.roll(spec, label);
+      return;
+    }
+    // ultra-fallback before module loads
+    const m = String(spec).match(/^(\d*)d(\d+)(kh1|kl1)?([+-]\d+)?$/i);
+    if (!m) return;
+    const n = m[1] ? parseInt(m[1], 10) : 1;
+    const faces = parseInt(m[2], 10);
+    const keep = m[3] ? m[3].toLowerCase() : null;
+    const mod = m[4] ? parseInt(m[4], 10) : 0;
+    const vals = Array.from({ length: n }, () => 1 + Math.floor(Math.random() * faces));
+    let used = vals;
+    if (keep === "kh1") used = [Math.max(...vals)];
+    if (keep === "kl1") used = [Math.min(...vals)];
+    const total = used.reduce((a, b) => a + b, 0) + mod;
+    alert(`${label}: ${total}`);
+  }
+
+  function hitShortName(hit) {
+    return getWeaponProfile(hit.weaponId, hit.twoHanded).short;
+  }
+
+  function baBusy(buffs) {
+    return buffs.activateGM || buffs.activateWar || buffs.secondWindBA;
+  }
+
+  function effectiveBuffs(buffs, meta) {
+    const b = { ...buffs };
+    b.nick = !!(b.attackAction && meta.canNick && b.nick);
+    // EDW only if BA free and loadout supports it
+    if (baBusy(b) || !meta.canEdw) b.edw = false;
+    if (!isRuneActive("war")) {
+      b.warPassive = false;
+      b.warHaste = false;
+      b.activateWar = false;
+    } else {
+      b.warPassive = true;
+    }
+    if (!isRuneActive("fire")) {
+      b.fireInvoke = false;
+    }
+    return b;
+  }
+
+  function buildSequence(meta, buffs) {
+    const seq = [];
+    const actionAttacks = buildActionAttacks(meta, buffs.nick);
+
+    if (buffs.attackAction) {
+      actionAttacks.forEach((a) => {
+        seq.push({ ...a, source: "Action" });
+      });
+    }
+
+    if (buffs.warHaste) {
+      const h = pickHasteWeapon(meta);
+      seq.push({
+        weaponId: h.id,
+        twoHanded: h.twoHanded,
+        tag: "Haste",
+        source: "Haste",
+      });
+    }
+
+    if (buffs.edw && meta.canEdw && !baBusy(buffs)) {
+      const e = pickEdwWeapon(meta);
+      seq.push({
+        weaponId: e.id,
+        twoHanded: e.twoHanded,
+        tag: "EDW",
+        source: "Bonus",
+      });
+    }
+
+    if (buffs.actionSurge && buffs.attackAction) {
+      actionAttacks.forEach((a) => {
+        seq.push({ ...a, source: "Surge" });
+      });
+    }
+
+    return seq;
+  }
+
+  function calcTurn(loadout, buffsIn) {
+    const meta = getLoadoutMeta(loadout);
+    const buffs = effectiveBuffs(buffsIn, meta);
+    const seq = buildSequence(meta, buffs);
+
+    let min = 0, avg = 0, max = 0;
+    const lines = [];
+    const byKey = {};
+
+    seq.forEach((hit, i) => {
+      const hitBuffs = { ...buffs };
+      if (buffs.fireInvoke && i > 0) hitBuffs.fireInvoke = false;
+      const hitParts = weaponDamageParts(hit, hitBuffs);
+      min += partsMin(hitParts);
+      avg += partsAvg(hitParts);
+      max += partsMax(hitParts);
+      lines.push({
+        n: i + 1,
+        name: hitShortName(hit),
+        tag: [hit.source, hit.tag].filter(Boolean).join(" · "),
+        formula: partsFormula(hitParts),
+        avg: partsAvg(hitParts),
+      });
+      const key = `${hit.weaponId}${hit.twoHanded ? "2h" : ""}`;
+      byKey[key] = (byKey[key] || 0) + 1;
+    });
+
+    const baseBuffs = { ...buffs, fireInvoke: false };
+    const formulaBits = Object.entries(byKey).map(([key, n]) => {
+      const twoHanded = key.endsWith("2h");
+      const wid = twoHanded ? key.slice(0, -2) : key;
+      const p = weaponDamageParts({ weaponId: wid, twoHanded }, baseBuffs);
+      return `${n}×(${partsFormula(p)})`;
+    });
+    if (buffs.fireInvoke && seq.length) {
+      formulaBits.push("+ 2d6 fire (1 osuma)");
+    }
+
+    const toHit = CHAR.toHit;
+    const crit = buffs.warPassive ? "19–20" : "20";
+    const ac = buffs.defensiveDuelist ? CHAR.acDD : CHAR.ac;
+    let speed = getTurnMoveBudget();
+    // keep walk for reference in return
+    const walk = getWalkSpeed();
+
+    return {
+      meta,
+      seq,
+      lines,
+      attacks: seq.length,
+      min: Math.round(min),
+      avg: Math.round(avg * 10) / 10,
+      max: Math.round(max),
+      formula: formulaBits.join(" + ") || "—",
+      toHit,
+      crit,
+      ac,
+      speed,
+      walkSpeed: walk,
+      actionMode: getActionMode(),
+      buffs,
+      baConflict: baBusy(buffsIn) && buffsIn.edw && meta.canEdw,
+    };
+  }
+
+  // ——— persistence ———
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        loadout: state.loadout,
+        activeRunes: state.activeRunes,
+        buffs: state.buffs,
+        used: state.used,
+        combat: state.combat,
+      }));
+    } catch (_) { /* ignore */ }
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data.loadout) {
+        state.loadout = normalizeLoadout(data.loadout);
+      } else if (data.setup === "sap") {
+        state.loadout = { main: "longsword", off: null, grip: "1h" };
+      } else if (data.setup === "nick") {
+        state.loadout = defaultLoadout();
+      }
+      if (Array.isArray(data.activeRunes)) {
+        state.activeRunes = data.activeRunes
+          .filter((id) => RUNE_BY_ID[id])
+          .slice(0, CHAR.maxActiveRunes);
+      }
+      if (data.buffs) state.buffs = { ...defaultBuffs(), ...data.buffs };
+      if (data.used) state.used = { ...defaultUsed(), ...data.used };
+      if (data.combat) {
+        state.combat = { ...defaultCombat(), ...data.combat };
+        if (!state.combat.attackResults) state.combat.attackResults = {};
+        if (!state.combat.tmOverrides) state.combat.tmOverrides = {};
+      }
+      // Haste / GM kestävät encounterin ajan duration-counterilla (eivät vaadi BA:ta joka vuorolla).
+      // Vanha bugi: warHaste sticky ilman BA:ta → phantom 4. Action; nyt vain jos roundsLeft > 0 tai BA juuri käytössä.
+      if ((state.combat.hasteRoundsLeft || 0) > 0 && isRuneActive("war")) {
+        state.buffs.warHaste = true;
+      } else if (state.combat.usedBonus === "warRune" && isRuneActive("war")) {
+        state.buffs.warHaste = true;
+        if (!(state.combat.hasteRoundsLeft > 0)) {
+          state.combat.hasteRoundsLeft = DURATION_ROUNDS_1MIN;
+        }
+      } else {
+        state.buffs.warHaste = false;
+        state.buffs.activateWar = false;
+        state.combat.hasteRoundsLeft = 0;
+      }
+      if ((state.combat.gmRoundsLeft || 0) > 0) {
+        state.buffs.giantsMight = true;
+      } else if (state.combat.usedBonus === "giantsMight") {
+        state.buffs.giantsMight = true;
+        state.combat.gmRoundsLeft = DURATION_ROUNDS_1MIN;
+      }
+      syncRuneBuffs();
+      save();
+    } catch (_) { /* ignore */ }
+  }
+
+  // ——— UI build ———
+  function placeRuneTip(btn) {
+    const tip = btn.querySelector(".rune-tip");
+    if (!tip) return;
+    tip.style.visibility = "hidden";
+    tip.style.display = "block";
+    const pad = 8;
+    const rect = btn.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    let left = rect.left;
+    let top = rect.bottom + 6;
+
+    if (left + tipRect.width > window.innerWidth - pad) {
+      left = window.innerWidth - tipRect.width - pad;
+    }
+    if (left < pad) left = pad;
+
+    if (top + tipRect.height > window.innerHeight - pad) {
+      top = rect.top - tipRect.height - 6;
+    }
+    if (top < pad) top = pad;
+
+    tip.style.left = `${Math.round(left)}px`;
+    tip.style.top = `${Math.round(top)}px`;
+    tip.style.visibility = "";
+    tip.style.display = "";
+  }
+
+  function renderRuneSelect() {
+    const root = document.getElementById("runeSelect");
+    const countEl = document.getElementById("runeCount");
+    root.innerHTML = "";
+    const n = state.activeRunes.length;
+    countEl.textContent = `${n} / ${CHAR.maxActiveRunes} kaiverrettu`;
+    countEl.classList.toggle("full", n >= CHAR.maxActiveRunes);
+
+    RUNES.forEach((rune) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "toggle rune-card" + (rune.cls ? " " + rune.cls : "");
+      const on = isRuneActive(rune.id);
+      if (on) btn.classList.add("active");
+      const glyph = RUNE_GLYPH[rune.id] || RUNE_GLYPH.journey;
+      btn.innerHTML = `
+        <span class="rune-glyph">${glyph}</span>
+        <span class="rune-name">${rune.name}</span>
+        <span class="sub">${rune.passive}</span>
+        ${runeTipHtml(rune)}`;
+      btn.title = "";
+      btn.setAttribute("aria-label", `${rune.name}. ${rune.passive}. ${rune.invoke}`);
+      if (!on && n >= CHAR.maxActiveRunes) btn.disabled = true;
+      btn.addEventListener("pointerenter", () => placeRuneTip(btn));
+      btn.addEventListener("focus", () => placeRuneTip(btn));
+      btn.addEventListener("click", () => {
+        if (on) {
+          state.activeRunes = state.activeRunes.filter((id) => id !== rune.id);
+        } else {
+          if (state.activeRunes.length >= CHAR.maxActiveRunes) return;
+          state.activeRunes = [...state.activeRunes, rune.id];
+        }
+        syncRuneBuffs();
+        save();
+        renderAll();
+      });
+      root.appendChild(btn);
+    });
+  }
+
+  function setLoadout(partial) {
+    const next = normalizeLoadout({ ...state.loadout, ...partial });
+    // If switching main away from LS, clear 2H
+    if (next.main !== "longsword") next.grip = "1h";
+    if (next.grip === "2h") next.off = null;
+    state.loadout = next;
+    const meta = getLoadoutMeta(state.loadout);
+    state.buffs.nick = meta.canNick;
+    // Keep edw toggle on if possible
+    if (!meta.canEdw) state.buffs.edw = false;
+    else if (!baBusy(state.buffs)) state.buffs.edw = true;
+    save();
+    renderAll();
+  }
+
+  function renderLoadout() {
+    const root = document.getElementById("loadoutPanel");
+    root.innerHTML = "";
+    const L = normalizeLoadout(state.loadout);
+
+    function addRow(label, makeButtons) {
+      const row = document.createElement("div");
+      row.className = "loadout-row";
+      const lab = document.createElement("span");
+      lab.className = "row-label";
+      lab.textContent = label;
+      row.appendChild(lab);
+      const opts = document.createElement("div");
+      opts.className = "row-opts";
+      makeButtons(opts);
+      row.appendChild(opts);
+      root.appendChild(row);
+    }
+
+    addRow("Main", (row) => {
+      WEAPON_IDS.forEach((id) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "toggle weapon-card wpn-" + id + (L.main === id ? " active" : "");
+        btn.innerHTML = weaponCardHtml(id, WEAPONS[id].short);
+        btn.addEventListener("click", () => setLoadout({ main: id }));
+        row.appendChild(btn);
+      });
+    });
+
+    addRow("Off", (row) => {
+      WEAPON_IDS.forEach((id) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        const selected = L.off === id;
+        btn.className = "toggle weapon-card wpn-" + id + (selected ? " active" : "");
+        btn.innerHTML = weaponCardHtml(id, WEAPONS[id].short);
+        btn.disabled = L.grip === "2h";
+        btn.title = selected ? "Klikkaa uudelleen: Off pois" : WEAPONS[id].short;
+        btn.addEventListener("click", () => {
+          if (L.off === id) setLoadout({ off: null, grip: "1h" });
+          else setLoadout({ off: id, grip: "1h" });
+        });
+        row.appendChild(btn);
+      });
+    });
+
+    addRow("Grip", (row) => {
+      ["1h", "2h"].forEach((g) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "toggle weapon-card wpn-grip" + g
+          + (L.grip === g ? " active" : "");
+        btn.innerHTML = weaponCardHtml(
+          g === "2h" ? "grip2h" : "grip1h",
+          g === "2h" ? "2H (d10)" : "1H (d8)"
+        );
+        btn.disabled = L.main !== "longsword" && g === "2h";
+        if (L.main !== "longsword" && g === "1h") btn.classList.add("active");
+        btn.addEventListener("click", () => {
+          if (L.main !== "longsword" && g === "2h") return;
+          setLoadout({ grip: g, off: g === "2h" ? null : L.off });
+        });
+        row.appendChild(btn);
+      });
+    });
+  }
+
+  function renderCalc() {
+    const result = calcTurn(state.loadout, state.buffs);
+    const combatHits = getCombatAttackCards();
+    const attacks = combatHits.length || result.attacks;
+
+    document.getElementById("sumToHit").textContent = `+${result.toHit}`;
+    document.getElementById("sumAttacks").textContent = String(attacks);
+    document.getElementById("sumAvg").textContent = attacks ? String(result.avg) : "—";
+    document.getElementById("sumAC").textContent = String(result.ac);
+    document.getElementById("sumCrit").textContent = result.crit;
+    document.getElementById("sumSpeed").textContent = String(result.speed);
+  }
+
+  function resourceEffectText(r) {
+    if (!r) return "";
+    return typeof r.effect === "function" ? r.effect() : (r.effect || "");
+  }
+
+  function filteredResources() {
+    const filter = state.resourceFilter || "all";
+    if (filter === "all") return RESOURCES.slice();
+    return RESOURCES.filter((r) => (r.source || "other") === filter);
+  }
+
+  function sortedResources() {
+    const { key, dir } = state.resourceSort || { key: "source", dir: 1 };
+    const list = filteredResources();
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (key === "name") {
+        cmp = a.name.localeCompare(b.name, "fi");
+      } else if (key === "source") {
+        cmp = (RESOURCE_SOURCE_SORT[a.source] ?? 9) - (RESOURCE_SOURCE_SORT[b.source] ?? 9);
+        if (!cmp) cmp = a.name.localeCompare(b.name, "fi");
+      } else if (key === "rest") {
+        cmp = (RESOURCE_REST_SORT[a.rest] ?? 9) - (RESOURCE_REST_SORT[b.rest] ?? 9);
+        if (!cmp) cmp = a.name.localeCompare(b.name, "fi");
+      } else if (key === "effect") {
+        cmp = resourceEffectText(a).localeCompare(resourceEffectText(b), "fi");
+      } else if (key === "left") {
+        const la = resourceRemaining(a.id);
+        const lb = resourceRemaining(b.id);
+        cmp = la - lb;
+        if (!cmp) cmp = a.slots - b.slots;
+        if (!cmp) cmp = a.name.localeCompare(b.name, "fi");
+      }
+      return cmp * dir;
+    });
+    return list;
+  }
+
+  function setResourceSort(key) {
+    if (!state.resourceSort) state.resourceSort = { key: "source", dir: 1 };
+    if (state.resourceSort.key === key) {
+      state.resourceSort.dir *= -1;
+    } else {
+      state.resourceSort.key = key;
+      state.resourceSort.dir = 1;
+    }
+    renderResources();
+  }
+
+  function setResourceFilter(filter) {
+    state.resourceFilter = filter || "all";
+    renderResources();
+  }
+
+  function renderResources() {
+    const root = document.getElementById("resourceList");
+    root.innerHTML = "";
+    if (!state.resourceSort) state.resourceSort = { key: "source", dir: 1 };
+    if (!state.resourceFilter) state.resourceFilter = "all";
+    const sort = state.resourceSort;
+    const filter = state.resourceFilter;
+
+    const filters = document.createElement("div");
+    filters.className = "resource-filters";
+    filters.setAttribute("role", "group");
+    filters.setAttribute("aria-label", "Suodata lähteen mukaan");
+    const filterOpts = [
+      { id: "all", label: "Kaikki", cls: "" },
+      { id: "class", label: "Class", cls: "src-class" },
+      { id: "rune", label: "Riimu", cls: "src-rune" },
+      { id: "feat", label: "Feat", cls: "src-feat" },
+      { id: "item", label: "Item", cls: "src-item" },
+      { id: "other", label: "Muu", cls: "src-other" },
+    ];
+    filterOpts.forEach((opt) => {
+      const count = opt.id === "all"
+        ? RESOURCES.length
+        : RESOURCES.filter((r) => (r.source || "other") === opt.id).length;
+      if (opt.id !== "all" && count === 0) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "res-filter"
+        + (opt.cls ? ` ${opt.cls}` : "")
+        + (filter === opt.id ? " active" : "");
+      btn.textContent = `${opt.label} (${count})`;
+      btn.title = opt.id === "all"
+        ? "Näytä kaikki resurssit"
+        : `Suodata: ${RESOURCE_SOURCE_LABEL[opt.id] || opt.label}`;
+      btn.addEventListener("click", () => setResourceFilter(opt.id));
+      filters.appendChild(btn);
+    });
+    root.appendChild(filters);
+
+    const rows = sortedResources();
+    if (!rows.length) {
+      const empty = document.createElement("p");
+      empty.className = "resource-empty";
+      empty.textContent = "Ei rivejä tällä suodatuksella.";
+      root.appendChild(empty);
+      return;
+    }
+
+    const table = document.createElement("table");
+    table.className = "resource-table";
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    const cols = [
+      { key: "name", label: "Kyky" },
+      { key: "source", label: "Lähde" },
+      { key: "rest", label: "Rest" },
+      { key: "effect", label: "Vaikutus" },
+      { key: "left", label: "Käyttö" },
+    ];
+    cols.forEach((c) => {
+      const th = document.createElement("th");
+      th.scope = "col";
+      th.dataset.sort = c.key;
+      if (sort.key === c.key) th.classList.add("sort-active");
+      const ind = sort.key === c.key ? (sort.dir > 0 ? "▲" : "▼") : "";
+      th.innerHTML = `${c.label}${ind ? `<span class="sort-ind">${ind}</span>` : ""}`;
+      th.title = `Järjestä: ${c.label}`;
+      th.addEventListener("click", () => setResourceSort(c.key));
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    rows.forEach((r) => {
+      const used = state.used[r.id] || 0;
+      const isRune = !!r.runeId;
+      const active = !isRune || isRuneActive(r.runeId);
+      const glyphKey = r.runeId || (r.id === "runicShield" ? "runicShield" : null);
+      const glyph = glyphKey ? RUNE_GLYPH[glyphKey] : null;
+      const restKey = RESOURCE_REST_BADGE[r.rest] ? r.rest : "lr";
+      const srcKey = RESOURCE_SOURCE_BADGE[r.source] ? r.source : "other";
+      const left = Math.max(0, r.slots - used);
+
+      const tr = document.createElement("tr");
+      tr.className = `rest-${restKey}`
+        + (isRune && !active ? " inactive-rune" : "")
+        + (glyphKey ? ` rune-${glyphKey}` : "");
+
+      const tdName = document.createElement("td");
+      tdName.className = "col-name";
+      tdName.innerHTML = `
+        <span class="name-row">
+          <span class="res-glyph${glyph ? "" : " is-empty"}" aria-hidden="true">${glyph || ""}</span>
+          <span class="name-text"></span>
+        </span>`;
+      tdName.querySelector(".name-text").textContent = r.name;
+      tr.appendChild(tdName);
+
+      const tdSrc = document.createElement("td");
+      tdSrc.innerHTML = `<span class="res-badge src-${srcKey}">${RESOURCE_SOURCE_BADGE[srcKey]}</span>`;
+      tr.appendChild(tdSrc);
+
+      const tdRest = document.createElement("td");
+      tdRest.innerHTML = `<span class="res-badge rest-${restKey}">${RESOURCE_REST_BADGE[restKey]}</span>`;
+      tr.appendChild(tdRest);
+
+      const tdEffect = document.createElement("td");
+      tdEffect.className = "col-effect";
+      const effectText = resourceEffectText(r);
+      if (isRune && !active) {
+        tdEffect.innerHTML = `<span class="inactive-note">Ei kaiverrettu · </span>`;
+        tdEffect.appendChild(document.createTextNode(effectText));
+      } else {
+        tdEffect.textContent = effectText;
+      }
+      tr.appendChild(tdEffect);
+
+      const tdUses = document.createElement("td");
+      tdUses.className = "col-uses";
+      const slots = document.createElement("div");
+      slots.className = "slots";
+      for (let i = 0; i < r.slots; i++) {
+        const slot = document.createElement("button");
+        slot.type = "button";
+        slot.className = "slot"
+          + (i < left ? " avail" : "")
+          + (r.rest === "turn" || r.rest === "round" ? " per-turn" : "");
+        slot.title = active
+          ? `${r.name} · ${left}/${r.slots} jäljellä · ${RESOURCE_REST_BADGE[restKey]}`
+          : `${r.name} ei kaiverrettu — ei käytettävissä`;
+        slot.disabled = !active;
+        slot.addEventListener("click", () => {
+          if (!active) return;
+          if (i < used - 1) {
+            state.used[r.id] = i + 1;
+          } else if (i === used - 1) {
+            state.used[r.id] = used - 1;
+          } else {
+            state.used[r.id] = i + 1;
+          }
+          if (r.id === "giantsMight" && state.used[r.id] > used) {
+            state.buffs.giantsMight = true;
+            state.buffs.activateGM = true;
+            state.combat.gmRoundsLeft = DURATION_ROUNDS_1MIN;
+          }
+          if (r.id === "warRune" && state.used[r.id] > used) {
+            if (!isRuneActive("war")) {
+              state.used[r.id] = used;
+              return;
+            }
+            // Haste vain BA-kortista — tracker merkitsee vain käytön (ei phantom-lyöntiä)
+          }
+          if (r.id === "actionSurge" && state.used[r.id] > used) {
+            state.buffs.actionSurge = true;
+          }
+          if (r.id === "fireRune" && state.used[r.id] > used) {
+            if (!isRuneActive("fire")) {
+              state.used[r.id] = used;
+              return;
+            }
+            state.buffs.fireInvoke = true;
+          }
+          if (r.id === "defensiveDuelist" && state.used[r.id] > used) {
+            state.buffs.defensiveDuelist = true;
+          }
+          if (r.id === "secondWind" && state.used[r.id] > used) {
+            state.buffs.secondWindBA = true;
+          }
+          syncRuneBuffs();
+          save();
+          renderAll();
+        });
+        slots.appendChild(slot);
+      }
+      tdUses.appendChild(slots);
+      tr.appendChild(tdUses);
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    root.appendChild(table);
+  }
+
+  function renderAll() {
+    syncRuneBuffs();
+    renderRuneSelect();
+    renderLoadout();
+    renderCombat();
+    renderCalc();
+    renderResources();
+  }
+
+  // ——— events ———
+  document.getElementById("btnNewTurn").addEventListener("click", () => {
+    state.used.savageAttacker = 0;
+    state.used.defensiveDuelist = 0;
+    state.buffs.activateGM = false;
+    state.buffs.activateWar = false;
+    state.buffs.secondWindBA = false;
+    state.buffs.actionSurge = false;
+    state.buffs.fireInvoke = false;
+    state.buffs.defensiveDuelist = false;
+    state.buffs.edw = true;
+    state.buffs.attackAction = true;
+    resetCombatTurnBoard();
+    advanceEncounterRound();
+    save();
+    renderAll();
+  });
+
+  document.getElementById("btnClearTurn").addEventListener("click", () => {
+    clearCombatBoardHard();
+    save();
+    renderAll();
+  });
+
+  document.getElementById("btnShortRest").addEventListener("click", () => {
+    RESOURCES.forEach((r) => {
+      if (r.rest === "sr" || r.rest === "turn" || r.rest === "round") state.used[r.id] = 0;
+    });
+    if (state.used.secondWind > 0) state.used.secondWind = Math.max(0, state.used.secondWind - 1);
+    save();
+    renderAll();
+  });
+
+  document.getElementById("btnLongRest").addEventListener("click", () => {
+    state.used = defaultUsed();
+    state.buffs = defaultBuffs();
+    resetCombatTurnBoard();
+    resetEncounterTimers();
+    state.combat.vexAdvCarry = false; // LR nollaa myös Vex-ADV-kannon
+    syncRuneBuffs();
+    save();
+    renderAll();
+  });
+
+  document.getElementById("btnResetBuffs").addEventListener("click", () => {
+    state.buffs = defaultBuffs();
+    state.combat.hasteRoundsLeft = 0;
+    state.combat.gmRoundsLeft = 0;
+    syncRuneBuffs();
+    save();
+    renderAll();
+  });
+
+  load();
+  renderAll();
+})();
+  </script>
+  <script type="module">
+    const statusEl = document.getElementById("diceStatus");
+    const resultEl = document.getElementById("diceResult");
+    const flagEl = document.getElementById("diceFlag");
+    const toastEl = document.getElementById("diceToast");
+    const toastTotalEl = document.getElementById("diceToastTotal");
+    const toastFlagEl = document.getElementById("diceToastFlag");
+    const toastSubEl = document.getElementById("diceToastSub");
+    const subEl = document.getElementById("diceSub");
+    const dock = document.getElementById("diceDock");
+    let box = null;
+    let busy = false;
+    let toastTimer = null;
+
+    function setBusy(on) {
+      busy = on;
+      dock.querySelectorAll("button[data-roll]").forEach((b) => { b.disabled = on; });
+    }
+
+    function parseRollSpec(spec) {
+      // e.g. 1d20+10 | 2d20kh1+10 | 1d6+6
+      const m = String(spec).trim().match(/^(\d*)d(\d+)(kh1|kl1)?([+-]\d+)?$/i);
+      if (!m) return { dice: "1d20", mod: 0, keep: null, labelFaces: 20 };
+      const count = m[1] ? parseInt(m[1], 10) : 1;
+      const faces = parseInt(m[2], 10);
+      const keep = m[3] ? m[3].toLowerCase() : null;
+      const mod = m[4] ? parseInt(m[4], 10) : 0;
+      return { dice: `${count}d${faces}`, mod, keep, labelFaces: faces, count };
+    }
+
+    function critThreshold() {
+      const raw = (document.getElementById("sumCrit")?.textContent || "20").trim();
+      // "19–20" or "19-20" → 19; otherwise 20
+      const m = raw.match(/(\d+)/);
+      return m ? parseInt(m[1], 10) : 20;
+    }
+
+    function hideDiceToast() {
+      if (!toastEl) return;
+      toastEl.classList.remove("show");
+      const finish = () => {
+        toastEl.hidden = true;
+        toastEl.className = "dice-toast";
+        if (toastTotalEl) toastTotalEl.textContent = "—";
+        if (toastFlagEl) {
+          toastFlagEl.textContent = "";
+          toastFlagEl.classList.remove("show");
+        }
+        if (toastSubEl) toastSubEl.textContent = "";
+      };
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(finish, 220);
+    }
+
+    /** Always-visible result HUD over the canvas (works with dock collapsed). */
+    function showDiceToast(opts) {
+      if (!toastEl) return;
+      const { total, sub, flag, flagText } = opts;
+      if (toastTimer) clearTimeout(toastTimer);
+      toastEl.hidden = false;
+      toastEl.className = `dice-toast show${flag ? ` ${flag}` : ""}`;
+      if (toastTotalEl) toastTotalEl.textContent = String(total);
+      if (toastSubEl) toastSubEl.textContent = sub || "";
+      if (toastFlagEl) {
+        if (flag) {
+          toastFlagEl.textContent = flagText || (flag === "crit" ? "Critical!" : "Fumble!");
+          toastFlagEl.classList.add("show");
+        } else {
+          toastFlagEl.textContent = "";
+          toastFlagEl.classList.remove("show");
+        }
+      }
+      // Stay up long enough to read; crit/fumble a bit longer
+      const ms = flag ? 4500 : 3500;
+      toastTimer = setTimeout(() => hideDiceToast(), ms);
+    }
+
+    function clearDiceFlag() {
+      resultEl.classList.remove("crit", "fumble");
+      subEl.classList.remove("crit", "fumble");
+      flagEl.hidden = true;
+      flagEl.className = "dice-flag";
+      flagEl.textContent = "";
+    }
+
+    function summarize(values, keep, mod, label, faces) {
+      let used = values.slice();
+      let note = values.join(" + ");
+      if (keep === "kh1") {
+        used = [Math.max(...values)];
+        note = `korkein ${used[0]} (${values.join(", ")})`;
+      } else if (keep === "kl1") {
+        used = [Math.min(...values)];
+        note = `matalin ${used[0]} (${values.join(", ")})`;
+      }
+      const total = used.reduce((a, b) => a + b, 0) + mod;
+      const modStr = mod ? (mod > 0 ? `+${mod}` : `${mod}`) : "";
+      const nat = used.length === 1 ? used[0] : null;
+
+      clearDiceFlag();
+      resultEl.textContent = String(total);
+
+      let flag = null;
+      if (faces === 20 && nat != null) {
+        const thr = critThreshold();
+        if (nat === 1) flag = "fumble";
+        else if (nat >= thr) flag = "crit";
+      }
+
+      let subText;
+      let flagText = "";
+      if (flag === "crit") {
+        resultEl.classList.add("crit");
+        subEl.classList.add("crit");
+        flagEl.hidden = false;
+        flagEl.className = "dice-flag show crit";
+        flagText = nat >= 20 ? "Critical!" : `Critical! (nat ${nat})`;
+        flagEl.textContent = flagText;
+        subText = `${label}: nat ${nat} · CRIT · ${note}${modStr ? " " + modStr : ""} = ${total}`;
+        subEl.textContent = subText;
+      } else if (flag === "fumble") {
+        resultEl.classList.add("fumble");
+        subEl.classList.add("fumble");
+        flagEl.hidden = false;
+        flagEl.className = "dice-flag show fumble";
+        flagText = "Fumble!";
+        flagEl.textContent = flagText;
+        subText = `${label}: nat 1 · FUMBLE · ${note}${modStr ? " " + modStr : ""} = ${total}`;
+        subEl.textContent = subText;
+      } else {
+        subText = `${label}: ${note}${modStr ? " " + modStr : ""} = ${total}`;
+        subEl.textContent = subText;
+      }
+
+      showDiceToast({ total, sub: subText, flag, flagText });
+
+      // Crit arms next damage roll; non-crit / fumble clears it
+      if (faces === 20 && typeof window.kaelanOnToHitFlag === "function") {
+        window.kaelanOnToHitFlag(flag);
+      }
+
+      return total;
+    }
+
+    function fallbackRoll(spec, label) {
+      const { dice, mod, keep, count, labelFaces } = parseRollSpec(spec);
+      const n = count || 1;
+      const faces = labelFaces;
+      const values = Array.from({ length: n }, () => 1 + Math.floor(Math.random() * faces));
+      summarize(values, keep, mod, label, faces);
+      statusEl.textContent = "Fallback (ei 3D) — heitetty";
+      statusEl.classList.remove("err");
+    }
+
+    const DICE_COLOR_KEY = "kaelan-dice-color";
+    const DICE_THEME_KEY = "kaelan-dice-theme";
+    const THEMES_CDN = "https://cdn.jsdelivr.net/npm/@3d-dice/dice-themes@0.2.1/themes";
+    const EXTERNAL_THEMES = {
+      smooth: `${THEMES_CDN}/smooth`,
+      rust: `${THEMES_CDN}/rust`,
+      rock: `${THEMES_CDN}/rock`,
+      diceOfRolling: `${THEMES_CDN}/diceOfRolling`,
+      wooden: `${THEMES_CDN}/wooden`,
+    };
+    const COLORABLE_THEMES = new Set(["default", "smooth", "rust", "rock"]);
+    const KNOWN_THEMES = new Set(["default", ...Object.keys(EXTERNAL_THEMES)]);
+    const themeSelect = document.getElementById("diceTheme");
+    const colorPicker = document.getElementById("diceColorPicker");
+    const swatches = document.getElementById("diceSwatches");
+
+    function diceBoxConfig(theme, color) {
+      return {
+        assetPath: "assets/",
+        origin: "https://cdn.jsdelivr.net/npm/@3d-dice/dice-box@1.1.4/dist/",
+        scale: 6,
+        theme: theme || "default",
+        themeColor: color || "#c9a227",
+        externalThemes: EXTERNAL_THEMES,
+        gravity: 2,
+        friction: 0.8,
+        restitution: 0.4,
+        startingHeight: 12,
+        throwForce: 4,
+        spinForce: 5,
+      };
+    }
+
+    /** Match WebGL buffer to viewport 1:1 — never rely on CSS stretch (that elongates dice). */
+    function syncCanvasBuffer() {
+      if (!box || !box.canvas) return;
+      const canvas = box.canvas;
+      const w = Math.max(1, Math.round(window.innerWidth));
+      const h = Math.max(1, Math.round(window.innerHeight));
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      canvas.style.maxWidth = "none";
+      canvas.style.maxHeight = "none";
+      canvas.style.objectFit = "unset";
+      try {
+        if (canvas.width !== w) canvas.width = w;
+        if (canvas.height !== h) canvas.height = h;
+      } catch (_) { /* after offscreen transfer, attributes are locked */ }
+    }
+
+    function forceDiceResize() {
+      if (!box) return;
+      syncCanvasBuffer();
+      if (typeof box.resizeWorld === "function") {
+        try { box.resizeWorld(); } catch (_) { /* ignore */ }
+      }
+    }
+
+    /** Ensure size is correct the instant dice-box transfers the canvas offscreen. */
+    function installOffscreenSizeHook() {
+      const proto = HTMLCanvasElement.prototype;
+      if (proto.__kaelanSizeHook) return;
+      const orig = proto.transferControlToOffscreen;
+      if (typeof orig !== "function") return;
+      proto.transferControlToOffscreen = function transferControlToOffscreenPatched() {
+        const w = Math.max(1, Math.round(window.innerWidth));
+        const h = Math.max(1, Math.round(window.innerHeight));
+        this.width = w;
+        this.height = h;
+        this.style.width = `${w}px`;
+        this.style.height = `${h}px`;
+        this.style.maxWidth = "none";
+        this.style.maxHeight = "none";
+        return orig.call(this);
+      };
+      proto.__kaelanSizeHook = true;
+    }
+
+    let DiceBoxCtor = null;
+    async function loadDiceBoxCtor() {
+      if (DiceBoxCtor) return DiceBoxCtor;
+      const mod = await import(
+        "https://cdn.jsdelivr.net/npm/@3d-dice/dice-box@1.1.4/dist/dice-box.es.min.js"
+      );
+      DiceBoxCtor = mod.default;
+      return DiceBoxCtor;
+    }
+
+    /** Full rebuild — theme swaps with custom meshes need a fresh box for correct aspect. */
+    async function createDiceBox(theme, color) {
+      const container = document.getElementById("dice-box");
+      if (box) {
+        try { if (typeof box.clear === "function") box.clear(); } catch (_) { /* ignore */ }
+        box = null;
+      }
+      if (container) container.innerHTML = "";
+      installOffscreenSizeHook();
+      const DiceBox = await loadDiceBoxCtor();
+      box = new DiceBox("#dice-box", diceBoxConfig(theme, color));
+      syncCanvasBuffer();
+      await box.init();
+      syncCanvasBuffer();
+      forceDiceResize();
+      requestAnimationFrame(() => {
+        forceDiceResize();
+        requestAnimationFrame(forceDiceResize);
+      });
+      return box;
+    }
+
+    function loadDicePrefs() {
+      let color = "#c9a227";
+      let theme = "default";
+      try {
+        color = localStorage.getItem(DICE_COLOR_KEY) || color;
+        theme = localStorage.getItem(DICE_THEME_KEY) || theme;
+      } catch (_) { /* ignore */ }
+      if (!KNOWN_THEMES.has(theme)) theme = "default";
+      return { color, theme };
+    }
+
+    function saveDicePrefs(color, theme) {
+      try {
+        if (color) localStorage.setItem(DICE_COLOR_KEY, color);
+        if (theme) localStorage.setItem(DICE_THEME_KEY, theme);
+      } catch (_) { /* ignore */ }
+    }
+
+    function syncSwatchUI(color) {
+      colorPicker.value = color;
+      swatches.querySelectorAll(".dice-swatch[data-color]").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.color.toLowerCase() === color.toLowerCase());
+      });
+      const preset = [...swatches.querySelectorAll(".dice-swatch[data-color]")]
+        .some((b) => b.dataset.color.toLowerCase() === color.toLowerCase());
+      document.getElementById("diceCustomSwatch").classList.toggle("active", !preset);
+    }
+
+    function syncColorControls(theme) {
+      const canColor = COLORABLE_THEMES.has(theme);
+      swatches.style.opacity = canColor ? "1" : "0.45";
+      swatches.style.pointerEvents = canColor ? "" : "none";
+      colorPicker.disabled = !canColor;
+    }
+
+    async function applyDiceStyle({ color, theme } = {}) {
+      const prefs = loadDicePrefs();
+      const nextColor = color || prefs.color;
+      const nextTheme = theme || prefs.theme;
+      const themeChanged = Boolean(theme) && theme !== prefs.theme;
+      saveDicePrefs(nextColor, nextTheme);
+      syncSwatchUI(nextColor);
+      themeSelect.value = nextTheme;
+      syncColorControls(nextTheme);
+      if (!box && !themeChanged) return;
+      try {
+        if (themeChanged || !box) {
+          // Custom-mesh themes need a fresh box or dice stretch
+          await createDiceBox(nextTheme, nextColor);
+        } else if (typeof box.updateConfig === "function") {
+          await box.updateConfig({ themeColor: nextColor });
+          forceDiceResize();
+        }
+        statusEl.textContent = COLORABLE_THEMES.has(nextTheme)
+          ? "Tyyli päivitetty"
+          : "Tekstuuri päivitetty (kiinteä väri)";
+        statusEl.classList.remove("err");
+      } catch (err) {
+        console.warn("theme update failed, reverting to default", err);
+        try {
+          themeSelect.value = "default";
+          saveDicePrefs(nextColor, "default");
+          syncColorControls("default");
+          await createDiceBox("default", nextColor);
+          statusEl.textContent = "Tekstuuri ei latautunut — default + väri";
+          statusEl.classList.add("err");
+        } catch (e2) {
+          statusEl.textContent = "Tyylin vaihto epäonnistui";
+          statusEl.classList.add("err");
+        }
+      }
+    }
+
+    async function initDice() {
+      const prefs = loadDicePrefs();
+      syncSwatchUI(prefs.color);
+      themeSelect.value = prefs.theme;
+      syncColorControls(prefs.theme);
+      try {
+        await createDiceBox(prefs.theme, prefs.color);
+        window.addEventListener("resize", forceDiceResize);
+        const c = box && box.canvas;
+        const mismatch = c && Math.abs(c.width / c.height - c.clientWidth / c.clientHeight) > 0.03;
+        if (mismatch) {
+          statusEl.textContent = `Canvas-suhde pieleen (${c.width}×${c.height} / ${c.clientWidth}×${c.clientHeight})`;
+          statusEl.classList.add("err");
+        } else {
+          statusEl.textContent = "Valmis — heitä!";
+          statusEl.classList.remove("err");
+        }
+      } catch (err) {
+        console.warn("DiceBox init failed", err);
+        if (prefs.theme !== "default") {
+          try {
+            saveDicePrefs(prefs.color, "default");
+            themeSelect.value = "default";
+            syncColorControls("default");
+            await createDiceBox("default", prefs.color);
+            window.addEventListener("resize", forceDiceResize);
+            statusEl.textContent = "Valmis (default-tekstuuri)";
+            statusEl.classList.remove("err");
+            return;
+          } catch (e2) {
+            console.warn(e2);
+          }
+        }
+        box = null;
+        statusEl.textContent = "3D ei latautunut — käytetään fallbackia";
+        statusEl.classList.add("err");
+      }
+    }
+
+    function extractDieValues(results) {
+      const values = [];
+      const pushDie = (r) => {
+        if (r == null) return;
+        if (typeof r === "number" && Number.isFinite(r)) {
+          values.push(r);
+          return;
+        }
+        if (typeof r === "object") {
+          const v = r.result ?? r.value;
+          if (typeof v === "number" && Number.isFinite(v)) values.push(v);
+        }
+      };
+      if (Array.isArray(results)) {
+        results.forEach((item) => {
+          // Grouped roll-result: { rolls: [...], value }
+          if (item && Array.isArray(item.rolls)) {
+            item.rolls.forEach(pushDie);
+          } else {
+            // Individual die result from box.roll(): { result, sides, ... }
+            pushDie(item);
+          }
+        });
+        return values;
+      }
+      if (results && typeof results === "object") {
+        const flat = results.rolls || results.dice;
+        if (Array.isArray(flat)) flat.forEach(pushDie);
+      }
+      return values;
+    }
+
+    async function doRoll(spec, label) {
+      if (busy) return;
+      const parsed = parseRollSpec(spec);
+      if (!box) {
+        fallbackRoll(spec, label);
+        return;
+      }
+      setBusy(true);
+      statusEl.textContent = "Heitetään…";
+      statusEl.classList.remove("err");
+      try {
+        forceDiceResize();
+        const results = await box.roll(parsed.dice);
+        let values = extractDieValues(results);
+        // Prefer grouped results when available (same settle)
+        if ((!values.length || values.length < (parsed.count || 1))
+            && box && typeof box.getRollResults === "function") {
+          const grouped = extractDieValues(box.getRollResults());
+          if (grouped.length) values = grouped;
+        }
+        if (!values.length) {
+          fallbackRoll(spec, label);
+        } else {
+          summarize(values.map(Number), parsed.keep, parsed.mod, label, parsed.labelFaces);
+          statusEl.textContent = "Valmis";
+        }
+      } catch (err) {
+        console.warn(err);
+        fallbackRoll(spec, label);
+        statusEl.textContent = "3D-virhe — fallback";
+        statusEl.classList.add("err");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    dock.querySelectorAll("button[data-roll]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        let spec = btn.dataset.roll;
+        let label = btn.dataset.label || btn.textContent;
+        const parsed = parseRollSpec(spec);
+        // Dock damage presets: apply pending crit (not d20)
+        if (parsed.labelFaces !== 20 && typeof window.kaelanConsumePendingCrit === "function"
+            && window.kaelanHasPendingCrit && window.kaelanHasPendingCrit()) {
+          window.kaelanConsumePendingCrit();
+          spec = String(spec).replace(/(\d*)d(\d+)/gi, (_, n, f) => {
+            const c = n === "" || n == null ? 1 : parseInt(n, 10);
+            return `${c * 2}d${f}`;
+          });
+          label = `${label} · CRIT`;
+        }
+        doRoll(spec, label);
+      });
+    });
+    document.getElementById("diceClear").addEventListener("click", () => {
+      if (box && typeof box.clear === "function") box.clear();
+      clearDiceFlag();
+      hideDiceToast();
+      resultEl.textContent = "—";
+      subEl.textContent = "3D-heitto sheetin päällä";
+      statusEl.textContent = box ? "Valmis — heitä!" : "Fallback-tila";
+      statusEl.classList.toggle("err", !box);
+    });
+
+    const toggleBtn = document.getElementById("diceToggle");
+    const DICE_COLLAPSE_KEY = "kaelan-dice-collapsed";
+    function setDiceCollapsed(collapsed) {
+      dock.classList.toggle("collapsed", collapsed);
+      toggleBtn.textContent = collapsed ? "+" : "−";
+      toggleBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      toggleBtn.title = collapsed ? "Näytä nopat" : "Piilota nopat";
+      try { localStorage.setItem(DICE_COLLAPSE_KEY, collapsed ? "1" : "0"); } catch (_) { /* ignore */ }
+    }
+    toggleBtn.addEventListener("click", () => {
+      setDiceCollapsed(!dock.classList.contains("collapsed"));
+    });
+    try {
+      if (localStorage.getItem(DICE_COLLAPSE_KEY) === "1") setDiceCollapsed(true);
+    } catch (_) { /* ignore */ }
+
+    swatches.querySelectorAll(".dice-swatch[data-color]").forEach((btn) => {
+      btn.addEventListener("click", () => applyDiceStyle({ color: btn.dataset.color }));
+    });
+    document.getElementById("diceCustomSwatch").addEventListener("click", () => {
+      colorPicker.click();
+    });
+    colorPicker.addEventListener("input", () => {
+      applyDiceStyle({ color: colorPicker.value });
+    });
+    themeSelect.addEventListener("change", () => {
+      applyDiceStyle({ theme: themeSelect.value });
+    });
+
+    window.kaelanDice = {
+      roll: (spec, label) => doRoll(spec, label),
+      expand: () => setDiceCollapsed(false),
+      clear: () => {
+        if (box && typeof box.clear === "function") box.clear();
+      },
+      setStyle: (opts) => applyDiceStyle(opts),
+    };
+
+    initDice();
+  </script>
+</body>
+</html>
