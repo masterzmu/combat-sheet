@@ -1953,65 +1953,137 @@
       color: var(--danger);
     }
     .dice-toast {
+      --plaque: #cbb892;
+      --plaque-deep: #9e8860;
+      --plaque-ink: #2a2118;
+      --plaque-gold: #c9a227;
       position: fixed;
       left: 50%;
-      top: 14%;
-      transform: translateX(-50%);
+      top: 9%;
+      transform: translateX(-50%) scale(0.96);
       z-index: 10050;
       pointer-events: none;
-      min-width: 9rem;
-      max-width: min(22rem, calc(100vw - 2rem));
-      padding: 0.75rem 1.15rem 0.85rem;
-      border-radius: 14px;
+      width: min(16.5rem, calc(100vw - 2rem));
+      padding: 0.72rem 1.05rem 0.78rem;
       text-align: center;
-      background: color-mix(in srgb, var(--bg2) 88%, transparent);
-      border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+      color: var(--plaque-ink);
+      background:
+        radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, #fff 22%, var(--plaque)) 0%, transparent 55%),
+        linear-gradient(180deg, var(--plaque) 0%, var(--plaque-deep) 100%);
+      border: 3px solid #2c2418;
+      box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--plaque-gold) 75%, #fff),
+        inset 0 0 0 5px #3a2f20,
+        0 16px 36px rgba(0, 0, 0, 0.55);
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.22s ease, transform 0.22s ease;
     }
-    .dice-toast.show { opacity: 1; }
+    .dice-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    .dice-toast .toast-ornament {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      color: #3a2f20;
+      pointer-events: none;
+    }
+    .dice-toast .toast-ornament.tl { top: 5px; left: 5px; }
+    .dice-toast .toast-ornament.tr { top: 5px; right: 5px; transform: rotate(90deg); }
+    .dice-toast .toast-ornament.bl { bottom: 5px; left: 5px; transform: rotate(-90deg); }
+    .dice-toast .toast-ornament.br { bottom: 5px; right: 5px; transform: rotate(180deg); }
+    .dice-toast .toast-ornament svg { display: block; width: 14px; height: 14px; }
+    .dice-toast .toast-crack {
+      display: none;
+      position: absolute;
+      inset: 8px 18px auto 18px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #5a1c1c 18%, #2a0c0c 50%, #5a1c1c 82%, transparent);
+      transform: rotate(-8deg);
+      opacity: 0.7;
+    }
+    .dice-toast .toast-kind {
+      font-family: var(--font-display);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #5c4a32;
+      margin-bottom: 0.08rem;
+    }
     .dice-toast .toast-total {
       font-family: var(--font-display);
-      font-size: 2.4rem;
+      font-size: 2.8rem;
       font-weight: 800;
-      line-height: 1.05;
+      line-height: 1;
       letter-spacing: 0.04em;
-      color: var(--text);
+      color: var(--plaque-ink);
     }
     .dice-toast .toast-flag {
       display: none;
-      margin: 0.35rem 0 0.15rem;
+      margin: 0.32rem 0 0.1rem;
+      padding: 0.18rem 0.4rem;
       font-family: var(--font-display);
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       font-weight: 800;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
+      background: color-mix(in srgb, #2c2418 88%, transparent);
+      color: var(--plaque-gold);
     }
     .dice-toast .toast-flag.show { display: block; }
     .dice-toast .toast-sub {
-      font-family: var(--font-ui);
-      font-size: 0.78rem;
-      color: var(--muted);
-      line-height: 1.35;
-      margin-top: 0.25rem;
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      font-style: italic;
+      color: #4a3b28;
+      line-height: 1.3;
+      margin-top: 0.2rem;
     }
     .dice-toast.crit {
-      border-color: color-mix(in srgb, var(--war) 65%, var(--border));
-      box-shadow: 0 12px 36px color-mix(in srgb, var(--war) 35%, transparent);
+      --plaque: #e4c56a;
+      --plaque-deep: #b88928;
+      box-shadow:
+        inset 0 0 0 1px #f4e2a0,
+        inset 0 0 0 5px #3a2f20,
+        0 0 28px color-mix(in srgb, var(--war) 55%, transparent),
+        0 16px 36px rgba(0, 0, 0, 0.55);
+      animation: plaque-crit-pulse 0.45s ease-out;
     }
+    .dice-toast.crit .toast-kind { color: #4a3208; }
     .dice-toast.crit .toast-total {
-      color: color-mix(in srgb, var(--war) 85%, #fff);
-      text-shadow: 0 0 16px color-mix(in srgb, var(--war) 45%, transparent);
+      color: #3a2808;
+      text-shadow: 0 0 14px color-mix(in srgb, var(--war) 70%, transparent);
     }
-    .dice-toast.crit .toast-flag { color: color-mix(in srgb, var(--war) 80%, #fff); }
+    .dice-toast.crit .toast-flag {
+      background: #3a2808;
+      color: #f4e2a0;
+    }
     .dice-toast.fumble {
-      border-color: color-mix(in srgb, var(--danger) 65%, var(--border));
-      box-shadow: 0 12px 36px color-mix(in srgb, var(--danger) 35%, transparent);
+      --plaque: #8a6e5a;
+      --plaque-deep: #4a2a28;
+      color: #f3d6d0;
+      animation: plaque-fumble-shake 0.35s ease-out;
     }
-    .dice-toast.fumble .toast-total { color: var(--danger); }
-    .dice-toast.fumble .toast-flag { color: var(--danger); }
+    .dice-toast.fumble .toast-crack { display: block; }
+    .dice-toast.fumble .toast-kind { color: #d9b4aa; }
+    .dice-toast.fumble .toast-total { color: #ffd4cc; }
+    .dice-toast.fumble .toast-flag {
+      background: #3a1212;
+      color: #ef6b6b;
+    }
+    .dice-toast.fumble .toast-sub { color: #e8c8c0; }
+    @keyframes plaque-crit-pulse {
+      0% { transform: translateX(-50%) scale(0.9); }
+      55% { transform: translateX(-50%) scale(1.05); }
+      100% { transform: translateX(-50%) scale(1); }
+    }
+    @keyframes plaque-fumble-shake {
+      0% { transform: translateX(-50%) rotate(-1.2deg); }
+      40% { transform: translateX(-50%) rotate(1deg); }
+      100% { transform: translateX(-50%) rotate(0); }
+    }
     .dice-dock .dice-sub {
       font-family: var(--font-ui);
       font-size: 0.72rem;
@@ -2180,6 +2252,12 @@
 <body>
   <div id="dice-box"></div>
   <div id="diceToast" class="dice-toast" hidden>
+    <span class="toast-ornament tl" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none"><path d="M1 13 V4 L4 1 H13" stroke="currentColor" stroke-width="1.4"/><path d="M4 13 V7 L7 4 H13" stroke="currentColor" stroke-width="1.1" opacity="0.7"/><circle cx="4" cy="4" r="1.15" fill="currentColor"/></svg></span>
+    <span class="toast-ornament tr" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none"><path d="M1 13 V4 L4 1 H13" stroke="currentColor" stroke-width="1.4"/><path d="M4 13 V7 L7 4 H13" stroke="currentColor" stroke-width="1.1" opacity="0.7"/><circle cx="4" cy="4" r="1.15" fill="currentColor"/></svg></span>
+    <span class="toast-ornament bl" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none"><path d="M1 13 V4 L4 1 H13" stroke="currentColor" stroke-width="1.4"/><path d="M4 13 V7 L7 4 H13" stroke="currentColor" stroke-width="1.1" opacity="0.7"/><circle cx="4" cy="4" r="1.15" fill="currentColor"/></svg></span>
+    <span class="toast-ornament br" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none"><path d="M1 13 V4 L4 1 H13" stroke="currentColor" stroke-width="1.4"/><path d="M4 13 V7 L7 4 H13" stroke="currentColor" stroke-width="1.1" opacity="0.7"/><circle cx="4" cy="4" r="1.15" fill="currentColor"/></svg></span>
+    <div class="toast-crack" aria-hidden="true"></div>
+    <div class="toast-kind" id="diceToastKind"></div>
     <div class="toast-total" id="diceToastTotal">—</div>
     <div class="toast-flag" id="diceToastFlag"></div>
     <div class="toast-sub" id="diceToastSub"></div>
@@ -4571,6 +4649,7 @@
     const resultEl = document.getElementById("diceResult");
     const flagEl = document.getElementById("diceFlag");
     const toastEl = document.getElementById("diceToast");
+    const toastKindEl = document.getElementById("diceToastKind");
     const toastTotalEl = document.getElementById("diceToastTotal");
     const toastFlagEl = document.getElementById("diceToastFlag");
     const toastSubEl = document.getElementById("diceToastSub");
@@ -4603,12 +4682,37 @@
       return m ? parseInt(m[1], 10) : 20;
     }
 
+    function rollKindFromLabel(label) {
+      const s = String(label || "").toLowerCase();
+      if (/\bdmg\b|damage|vahinko/.test(s)) return "dmg";
+      if (/\bhit\b|to hit|advantage|adv\b/.test(s)) return "hit";
+      if (/\bd20\b/.test(s)) return "d20";
+      return "other";
+    }
+
+    function kindTitle(kind) {
+      if (kind === "hit") return "HIT";
+      if (kind === "dmg") return "DAMAGE";
+      if (kind === "d20") return "d20";
+      return "ROLL";
+    }
+
+    function plaqueFlagText(flag, kind, nat) {
+      if (flag === "fumble") return "NATURAL 1";
+      if (flag === "crit") {
+        if (kind === "hit") return nat != null && nat < 20 ? `CRITICAL HIT · NAT ${nat}` : "CRITICAL HIT";
+        return nat != null && nat < 20 ? `CRITICAL · NAT ${nat}` : "CRITICAL";
+      }
+      return "";
+    }
+
     function hideDiceToast() {
       if (!toastEl) return;
       toastEl.classList.remove("show");
       const finish = () => {
         toastEl.hidden = true;
         toastEl.className = "dice-toast";
+        if (toastKindEl) toastKindEl.textContent = "";
         if (toastTotalEl) toastTotalEl.textContent = "—";
         if (toastFlagEl) {
           toastFlagEl.textContent = "";
@@ -4623,22 +4727,23 @@
     /** Always-visible result HUD over the canvas (works with dock collapsed). */
     function showDiceToast(opts) {
       if (!toastEl) return;
-      const { total, sub, flag, flagText } = opts;
+      const { total, sub, flag, flagText, kind } = opts;
       if (toastTimer) clearTimeout(toastTimer);
       toastEl.hidden = false;
-      toastEl.className = `dice-toast show${flag ? ` ${flag}` : ""}`;
+      const kindCls = kind === "hit" || kind === "dmg" || kind === "d20" ? kind : "other";
+      toastEl.className = `dice-toast show kind-${kindCls}${flag ? ` ${flag}` : ""}`;
+      if (toastKindEl) toastKindEl.textContent = kindTitle(kindCls);
       if (toastTotalEl) toastTotalEl.textContent = String(total);
       if (toastSubEl) toastSubEl.textContent = sub || "";
       if (toastFlagEl) {
         if (flag) {
-          toastFlagEl.textContent = flagText || (flag === "crit" ? "Critical!" : "Fumble!");
+          toastFlagEl.textContent = flagText || (flag === "crit" ? "CRITICAL HIT" : "NATURAL 1");
           toastFlagEl.classList.add("show");
         } else {
           toastFlagEl.textContent = "";
           toastFlagEl.classList.remove("show");
         }
       }
-      // Stay up long enough to read; crit/fumble a bit longer
       const ms = flag ? 4500 : 3500;
       toastTimer = setTimeout(() => hideDiceToast(), ms);
     }
@@ -4677,6 +4782,13 @@
 
       let subText;
       let flagText = "";
+      const kind = (() => {
+        const fromLabel = rollKindFromLabel(label);
+        if (fromLabel !== "other") return fromLabel;
+        if (faces === 20) return "d20";
+        return "dmg";
+      })();
+      const plaqueSub = `${note}${modStr ? " " + modStr : ""} = ${total}`;
       if (flag === "crit") {
         resultEl.classList.add("crit");
         subEl.classList.add("crit");
@@ -4700,7 +4812,13 @@
         subEl.textContent = subText;
       }
 
-      showDiceToast({ total, sub: subText, flag, flagText });
+      showDiceToast({
+        total,
+        sub: plaqueSub,
+        flag,
+        flagText: plaqueFlagText(flag, kind, nat),
+        kind,
+      });
 
       // Crit arms next damage roll; non-crit / fumble clears it
       if (faces === 20 && typeof window.kaelanOnToHitFlag === "function") {
