@@ -80,6 +80,9 @@
     @media (max-width: 420px) {
       .sticky-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
+    @media (max-width: 720px) {
+      .sticky-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
 
     .stat {
       display: flex;
@@ -214,25 +217,6 @@
     }
     section.panel .panel-head h2 {
       margin: 0;
-    }
-    section.panel .panel-head .spell-clear {
-      font-family: var(--font-ui);
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 0.32rem 0.7rem;
-      border-radius: 7px;
-      border: 1px solid var(--border);
-      background: var(--bg3);
-      color: var(--muted);
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    section.panel .panel-head .spell-clear:hover {
-      border-color: var(--danger);
-      color: var(--danger);
-      background: color-mix(in srgb, var(--danger) 12%, var(--bg3));
     }
 
     .preset-row, .btn-row {
@@ -1519,6 +1503,28 @@
       align-items: start;
       width: 100%;
     }
+    @media (max-width: 860px) {
+      .combat-columns {
+        grid-template-columns: 1fr;
+      }
+      .combat-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .combat-head-actions {
+        width: 100%;
+      }
+      .title-bar h1 {
+        font-size: 1.15rem;
+      }
+      main {
+        padding-bottom: 5.5rem;
+      }
+      .dice-dock {
+        right: 0.5rem;
+        bottom: 0.5rem;
+      }
+    }
     .combat-section {
       margin-top: 0;
       background: var(--bg);
@@ -2566,7 +2572,6 @@
           <h1>Makhal “Wildwalker” Nalakthai</h1>
           <span class="subtitle">Combat Tool · vuoron seuranta</span>
         </div>
-        <a href="./kaelan.html">Kaelan</a>
       </div>
       <div class="sticky-row" id="summaryBar">
         <div class="stat to-hit"><span class="label">To Hit</span><span class="value accent" id="sumToHit">+10</span></div>
@@ -2583,7 +2588,14 @@
     <section class="panel" id="spellsSection">
       <div class="panel-head">
         <h2>Loitsut</h2>
-        <button type="button" class="spell-clear" id="spellClear" title="Tyhjennä valmistellut">Tyhjennä</button>
+        <button type="button" class="btn-turn btn-clear-turn" id="spellClear" title="Tyhjennä valmistellut">
+          <svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 7h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M8 7l.7 11.2A1.5 1.5 0 0 0 10.2 19.5h3.6a1.5 1.5 0 0 0 1.5-1.3L16 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Tyhjennä</span>
+        </button>
       </div>
       <p class="spell-meta" id="spellMeta">Spell attack <strong>+8</strong> · Save DC <strong>16</strong> · klikkaa loitsuja valmistellaksesi</p>
       <div id="spellPanel"></div>
