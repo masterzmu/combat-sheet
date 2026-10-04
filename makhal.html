@@ -296,7 +296,12 @@
       z-index: 1;
     }
     .toggle.rune-card:hover,
-    .toggle.rune-card:focus-within {
+    .toggle.rune-card:focus-within,
+    .spell-row:hover,
+    .spell-row:focus-within,
+    .toggle.weapon-card:hover,
+    .toggle.weapon-card:focus-within,
+    .tip-open {
       z-index: 30;
     }
     .rune-tip {
@@ -317,13 +322,21 @@
       z-index: 200;
       box-sizing: border-box;
     }
-    .toggle.rune-card:hover .rune-tip,
-    .toggle.rune-card:focus-within .rune-tip,
-    .spell-row:hover .rune-tip,
-    .spell-row:focus-within .rune-tip,
-    .toggle.weapon-card:hover .rune-tip,
-    .toggle.weapon-card:focus-within .rune-tip {
+    @media (hover: hover) and (pointer: fine) {
+      .toggle.rune-card:hover .rune-tip,
+      .toggle.rune-card:focus-within .rune-tip,
+      .spell-row:hover .rune-tip,
+      .spell-row:focus-within .rune-tip,
+      .toggle.weapon-card:hover .rune-tip,
+      .toggle.weapon-card:focus-within .rune-tip {
+        display: block;
+      }
+    }
+    .tip-open .rune-tip {
       display: block;
+      pointer-events: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .rune-tip .tip-h {
       font-family: var(--font-display);
@@ -4636,9 +4649,85 @@
     tip.style.display = "";
   }
 
+  let pinnedTip = null;
+  let tipSuppressClickUntil = 0;
+  const TIP_LONG_MS = 480;
+
+  function finePointerHover() {
+    return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  }
+
+  function closePinnedTip() {
+    if (!pinnedTip) return;
+    pinnedTip.classList.remove("tip-open");
+    pinnedTip = null;
+  }
+
+  function openPinnedTip(el) {
+    if (pinnedTip && pinnedTip !== el) closePinnedTip();
+    pinnedTip = el;
+    el.classList.add("tip-open");
+    placeRuneTip(el);
+  }
+
   function bindTip(el) {
-    el.addEventListener("mouseenter", () => placeRuneTip(el));
-    el.addEventListener("focusin", () => placeRuneTip(el));
+    el.addEventListener("mouseenter", () => {
+      if (finePointerHover()) placeRuneTip(el);
+    });
+    el.addEventListener("focusin", () => {
+      if (finePointerHover()) placeRuneTip(el);
+    });
+
+    let timer = 0;
+    let sx = 0;
+    let sy = 0;
+    const cancelTimer = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = 0;
+      }
+    };
+    el.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
+      sx = e.clientX;
+      sy = e.clientY;
+      cancelTimer();
+      timer = window.setTimeout(() => {
+        timer = 0;
+        tipSuppressClickUntil = Date.now() + 500;
+        openPinnedTip(el);
+      }, TIP_LONG_MS);
+    });
+    el.addEventListener("pointerup", cancelTimer);
+    el.addEventListener("pointercancel", cancelTimer);
+    el.addEventListener("pointermove", (e) => {
+      if (!timer) return;
+      if (Math.hypot(e.clientX - sx, e.clientY - sy) > 12) cancelTimer();
+    });
+    el.addEventListener("contextmenu", (e) => {
+      if (el.classList.contains("tip-open") || Date.now() < tipSuppressClickUntil) {
+        e.preventDefault();
+      }
+    });
+  }
+
+  if (!window.__runeTipOutsideBound) {
+    window.__runeTipOutsideBound = true;
+    document.addEventListener("pointerdown", (e) => {
+      if (!pinnedTip || !pinnedTip.isConnected) {
+        pinnedTip = null;
+        return;
+      }
+      const tip = pinnedTip.querySelector(".rune-tip");
+      if (tip && (e.target === tip || tip.contains(e.target))) return;
+      tipSuppressClickUntil = Date.now() + 400;
+      closePinnedTip();
+    }, true);
+    document.addEventListener("click", (e) => {
+      if (Date.now() >= tipSuppressClickUntil) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }, true);
   }
 
   function bindSpellTip(el) {
