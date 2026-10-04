@@ -535,7 +535,13 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.85rem 1.25rem;
-      margin-bottom: 0.85rem;
+      margin-bottom: 0.55rem;
+    }
+    .spell-slot-filter-sep {
+      display: block;
+      height: 1px;
+      margin: 0 0 0.7rem;
+      background: color-mix(in srgb, var(--border) 88%, var(--muted));
     }
     .spell-slot-group {
       display: flex;
@@ -1069,6 +1075,10 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 0.45rem 0.85rem;
+      min-width: 0;
+    }
+    .spell-filter-groups .resource-filters {
+      margin: 0;
     }
     .time-badge {
       display: inline-flex;
@@ -1529,6 +1539,30 @@
       .dice-dock {
         right: 0.5rem;
         bottom: 0.5rem;
+      }
+      .spell-toolbar {
+        flex-wrap: nowrap;
+        align-items: center;
+      }
+      .spell-filter-groups {
+        flex: 1 1 auto;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        padding-bottom: 0.1rem;
+      }
+      .spell-filter-groups .resource-filters {
+        flex-wrap: nowrap;
+        flex-shrink: 0;
+      }
+      .spell-filter-groups .res-filter {
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+      .spell-view-toggle {
+        flex-shrink: 0;
       }
     }
     .combat-section {
@@ -2311,7 +2345,8 @@
     .dice-dock.collapsed .dice-body {
       display: none;
     }
-    .dice-dock.collapsed .dice-title {
+    .dice-dock.collapsed .dice-title,
+    .dice-dock.collapsed .dice-head-actions {
       display: none;
     }
     .dice-dock.collapsed .dice-dock-head {
@@ -2355,7 +2390,32 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.4rem;
+      gap: 0.35rem;
+    }
+    .dice-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.12rem;
+      margin-left: auto;
+    }
+    .dice-dock .dice-icon-btn {
+      display: grid;
+      place-items: center;
+      width: 1.85rem;
+      height: 1.85rem;
+      min-width: 0;
+      padding: 0;
+      border-radius: 7px;
+      color: var(--muted);
+    }
+    .dice-dock .dice-icon-btn svg {
+      width: 1rem;
+      height: 1rem;
+      display: block;
+    }
+    .dice-dock .dice-icon-btn:hover,
+    .dice-settings.open #diceSettingsToggle {
+      color: var(--text);
     }
     .dice-dock .dice-title {
       font-family: var(--font-display);
@@ -2372,6 +2432,14 @@
       font-weight: 700;
       min-width: 2rem;
       flex-shrink: 0;
+    }
+    .dice-dock:not(.collapsed) #diceToggle {
+      display: grid;
+      place-items: center;
+      width: 1.85rem;
+      height: 1.85rem;
+      min-width: 0;
+      padding: 0;
     }
     .dice-dock .dice-result {
       font-family: var(--font-display);
@@ -2479,8 +2547,69 @@
       margin-bottom: 0.25rem;
       min-height: 1rem;
     }
+    .dice-dock .dice-sub:empty {
+      display: none;
+      min-height: 0;
+      margin: 0;
+    }
     .dice-dock .dice-sub.crit { color: color-mix(in srgb, var(--war) 70%, var(--muted)); }
     .dice-dock .dice-sub.fumble { color: color-mix(in srgb, var(--danger) 70%, var(--muted)); }
+    .dice-custom {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin: 0 0 0.5rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .dice-custom > .style-label {
+      margin: 0;
+    }
+    .dice-faces {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.28rem;
+    }
+    .dice-faces button {
+      flex: 1 1 2.15rem;
+      min-width: 2.15rem;
+      padding: 0.28rem 0.15rem;
+      font-size: 0.7rem;
+    }
+    .dice-faces button.active {
+      color: #fff;
+      border-color: color-mix(in srgb, var(--war) 70%, var(--border));
+      background: color-mix(in srgb, var(--war) 28%, var(--bg3));
+    }
+    .dice-custom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem;
+    }
+    .dice-stepper .style-label {
+      display: block;
+      margin-bottom: 0.18rem;
+    }
+    .dice-stepper-ctrl {
+      display: grid;
+      grid-template-columns: 1.65rem 1fr 1.65rem;
+      align-items: center;
+      gap: 0.15rem;
+    }
+    .dice-stepper-ctrl span {
+      text-align: center;
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .dice-stepper-ctrl button {
+      padding: 0.28rem 0;
+      font-size: 0.9rem;
+    }
+    .dice-custom #diceCustomRoll {
+      width: 100%;
+    }
     .dice-dock .dice-btns {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -2512,13 +2641,19 @@
       margin: 0;
     }
     .dice-dock .dice-status.err { color: var(--danger); }
+    .dice-settings {
+      display: none;
+      margin: 0.15rem 0 0;
+      padding-top: 0.3rem;
+      border-top: 1px solid var(--border);
+    }
+    .dice-settings.open {
+      display: block;
+    }
     .dice-style {
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
-      margin: 0.15rem 0 0.35rem;
-      padding-top: 0.35rem;
-      border-top: 1px solid var(--border);
     }
     .dice-style .style-label {
       font-family: var(--font-display);
@@ -2580,6 +2715,21 @@
   <aside class="dice-dock" id="diceDock">
     <div class="dice-dock-head">
       <div class="dice-title">Nopat</div>
+      <div class="dice-head-actions">
+        <button type="button" class="ghost dice-icon-btn" id="diceSettingsToggle" title="Noppa-asetukset" aria-label="Asetukset" aria-expanded="false" aria-controls="diceStylePanel">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.1" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 3.4v2.1M12 18.5v2.1M3.4 12h2.1M18.5 12h2.1M5.7 5.7l1.5 1.5M16.8 16.8l1.5 1.5M5.7 18.3l1.5-1.5M16.8 7.2l1.5-1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button type="button" class="ghost dice-icon-btn" id="diceClear" title="Tyhjennä heitto" aria-label="Tyhjennä">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 7h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M8 7l.7 11.2A1.5 1.5 0 0 0 10.2 19.5h3.6a1.5 1.5 0 0 0 1.5-1.3L16 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
       <button type="button" class="ghost" id="diceToggle" title="Piilota / näytä nopat" aria-label="Nopat" aria-expanded="true">
         <svg class="dice-fab-icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M12 2.4 L21 7.6 V16.4 L12 21.6 L3 16.4 V7.6 Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
@@ -2590,29 +2740,37 @@
     <div class="dice-body" id="diceBody">
       <div class="dice-result" id="diceResult">—</div>
       <div class="dice-flag" id="diceFlag" hidden></div>
-      <div class="dice-sub" id="diceSub">3D-heitto sheetin päällä</div>
-      <div class="dice-style">
-        <span class="style-label">Tekstuuri</span>
-        <select id="diceTheme" aria-label="Noppa-tekstuuri">
-          <option value="default">Default (väri)</option>
-          <option value="smooth">Smooth (väri)</option>
-          <option value="rust">Rust (väri)</option>
-          <option value="rock">Rock (väri)</option>
-          <option value="diceOfRolling">Dice of Rolling</option>
-          <option value="wooden">Wooden</option>
-        </select>
-        <span class="style-label">Väri</span>
-        <div class="dice-swatches" id="diceSwatches">
-          <button type="button" class="dice-swatch" data-color="#c9a227" title="Kulta" style="background:#c9a227"></button>
-          <button type="button" class="dice-swatch" data-color="#4ea1ff" title="Teräs" style="background:#4ea1ff"></button>
-          <button type="button" class="dice-swatch" data-color="#3ecf8e" title="Jade" style="background:#3ecf8e"></button>
-          <button type="button" class="dice-swatch" data-color="#ef6b6b" title="Rubiini" style="background:#ef6b6b"></button>
-          <button type="button" class="dice-swatch" data-color="#a78bfa" title="Amethyst" style="background:#a78bfa"></button>
-          <button type="button" class="dice-swatch" data-color="#e8e0d0" title="Luu" style="background:#e8e0d0"></button>
-          <button type="button" class="dice-swatch" data-color="#2a2f38" title="Obsidiaani" style="background:#2a2f38"></button>
-          <button type="button" class="dice-swatch custom" id="diceCustomSwatch" title="Oma väri"></button>
-          <input type="color" id="diceColorPicker" value="#8bb8c9" />
+      <div class="dice-sub" id="diceSub"></div>
+      <div class="dice-custom" id="diceCustom">
+        <span class="style-label">Oma heitto</span>
+        <div class="dice-faces" id="diceCustomFaces">
+          <button type="button" data-faces="4">d4</button>
+          <button type="button" data-faces="6">d6</button>
+          <button type="button" data-faces="8">d8</button>
+          <button type="button" data-faces="10">d10</button>
+          <button type="button" data-faces="12">d12</button>
+          <button type="button" class="active" data-faces="20">d20</button>
+          <button type="button" data-faces="100">d100</button>
         </div>
+        <div class="dice-custom-row">
+          <div class="dice-stepper">
+            <span class="style-label">Määrä</span>
+            <div class="dice-stepper-ctrl">
+              <button type="button" id="diceCountMinus" aria-label="Vähennä määrää">−</button>
+              <span id="diceCountVal">1</span>
+              <button type="button" id="diceCountPlus" aria-label="Lisää määrää">+</button>
+            </div>
+          </div>
+          <div class="dice-stepper">
+            <span class="style-label">Bonus</span>
+            <div class="dice-stepper-ctrl">
+              <button type="button" id="diceModMinus" aria-label="Vähennä bonusta">−</button>
+              <span id="diceModVal">0</span>
+              <button type="button" id="diceModPlus" aria-label="Lisää bonusta">+</button>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="primary wide" id="diceCustomRoll">Heitä</button>
       </div>
       <div class="dice-btns">
         <button type="button" class="primary wide" data-roll="1d20+10" data-label="To Hit">To Hit (d20+10)</button>
@@ -2621,9 +2779,33 @@
         <button type="button" data-roll="1d12+2" data-label="Stone's Endurance">1d12+2</button>
         <button type="button" data-roll="1d20" data-label="d20">d20</button>
         <button type="button" data-roll="1d6" data-label="HM / HD">d6</button>
-        <button type="button" class="ghost wide" id="diceClear">Tyhjennä</button>
       </div>
       <p class="dice-status" id="diceStatus">Ladataan noppia…</p>
+      <div class="dice-settings" id="diceSettings">
+        <div class="dice-style" id="diceStylePanel">
+          <span class="style-label">Tekstuuri</span>
+          <select id="diceTheme" aria-label="Noppa-tekstuuri">
+            <option value="default">Default (väri)</option>
+            <option value="smooth">Smooth (väri)</option>
+            <option value="rust">Rust (väri)</option>
+            <option value="rock">Rock (väri)</option>
+            <option value="diceOfRolling">Dice of Rolling</option>
+            <option value="wooden">Wooden</option>
+          </select>
+          <span class="style-label">Väri</span>
+          <div class="dice-swatches" id="diceSwatches">
+            <button type="button" class="dice-swatch" data-color="#c9a227" title="Kulta" style="background:#c9a227"></button>
+            <button type="button" class="dice-swatch" data-color="#4ea1ff" title="Teräs" style="background:#4ea1ff"></button>
+            <button type="button" class="dice-swatch" data-color="#3ecf8e" title="Jade" style="background:#3ecf8e"></button>
+            <button type="button" class="dice-swatch" data-color="#ef6b6b" title="Rubiini" style="background:#ef6b6b"></button>
+            <button type="button" class="dice-swatch" data-color="#a78bfa" title="Amethyst" style="background:#a78bfa"></button>
+            <button type="button" class="dice-swatch" data-color="#e8e0d0" title="Luu" style="background:#e8e0d0"></button>
+            <button type="button" class="dice-swatch" data-color="#2a2f38" title="Obsidiaani" style="background:#2a2f38"></button>
+            <button type="button" class="dice-swatch custom" id="diceCustomSwatch" title="Oma väri"></button>
+            <input type="color" id="diceColorPicker" value="#8bb8c9" />
+          </div>
+        </div>
+      </div>
     </div>
   </aside>
   <header class="sticky">
@@ -4544,6 +4726,11 @@
     });
     root.appendChild(slotsRow);
 
+    const sep = document.createElement("div");
+    sep.className = "spell-slot-filter-sep";
+    sep.setAttribute("aria-hidden", "true");
+    root.appendChild(sep);
+
     const toolbar = document.createElement("div");
     toolbar.className = "spell-toolbar";
 
@@ -4922,7 +5109,7 @@
 
     function setBusy(on) {
       busy = on;
-      dock.querySelectorAll("button[data-roll]").forEach((b) => { b.disabled = on; });
+      dock.querySelectorAll("button[data-roll], .dice-custom button").forEach((b) => { b.disabled = on; });
     }
 
     function parseRollSpec(spec) {
@@ -5316,6 +5503,7 @@
 
     async function doRoll(spec, label) {
       if (busy) return;
+      setDiceCollapsed(true);
       const parsed = parseRollSpec(spec);
       if (!box) {
         fallbackRoll(spec, label);
@@ -5368,12 +5556,83 @@
         doRoll(spec, label);
       });
     });
+
+    const DICE_CUSTOM_KEY = "makhal-dice-custom";
+    const CUSTOM_FACES = new Set([4, 6, 8, 10, 12, 20, 100]);
+    const customState = { count: 1, faces: 20, mod: 0 };
+    const countValEl = document.getElementById("diceCountVal");
+    const modValEl = document.getElementById("diceModVal");
+    const faceBtns = document.querySelectorAll("#diceCustomFaces button");
+
+    function formatMod(n) {
+      if (n > 0) return "+" + n;
+      return String(n);
+    }
+    function customSpec() {
+      const dice = `${customState.count}d${customState.faces}`;
+      return customState.mod === 0 ? dice : dice + formatMod(customState.mod);
+    }
+    function renderCustom() {
+      countValEl.textContent = String(customState.count);
+      modValEl.textContent = formatMod(customState.mod);
+      faceBtns.forEach((btn) => {
+        btn.classList.toggle("active", parseInt(btn.dataset.faces, 10) === customState.faces);
+      });
+      const rollBtn = document.getElementById("diceCustomRoll");
+      if (rollBtn) rollBtn.textContent = "Heitä " + customSpec();
+    }
+    function saveCustom() {
+      try { localStorage.setItem(DICE_CUSTOM_KEY, JSON.stringify(customState)); } catch (_) { /* ignore */ }
+    }
+    try {
+      const saved = JSON.parse(localStorage.getItem(DICE_CUSTOM_KEY) || "null");
+      if (saved && typeof saved === "object") {
+        const c = parseInt(saved.count, 10);
+        const f = parseInt(saved.faces, 10);
+        const m = parseInt(saved.mod, 10);
+        if (c >= 1 && c <= 9) customState.count = c;
+        if (CUSTOM_FACES.has(f)) customState.faces = f;
+        if (Number.isFinite(m) && m >= -99 && m <= 99) customState.mod = m;
+      }
+    } catch (_) { /* ignore */ }
+    faceBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        customState.faces = parseInt(btn.dataset.faces, 10);
+        saveCustom();
+        renderCustom();
+      });
+    });
+    document.getElementById("diceCountMinus").addEventListener("click", () => {
+      customState.count = Math.max(1, customState.count - 1);
+      saveCustom();
+      renderCustom();
+    });
+    document.getElementById("diceCountPlus").addEventListener("click", () => {
+      customState.count = Math.min(9, customState.count + 1);
+      saveCustom();
+      renderCustom();
+    });
+    document.getElementById("diceModMinus").addEventListener("click", () => {
+      customState.mod = Math.max(-99, customState.mod - 1);
+      saveCustom();
+      renderCustom();
+    });
+    document.getElementById("diceModPlus").addEventListener("click", () => {
+      customState.mod = Math.min(99, customState.mod + 1);
+      saveCustom();
+      renderCustom();
+    });
+    document.getElementById("diceCustomRoll").addEventListener("click", () => {
+      const spec = customSpec();
+      doRoll(spec, spec);
+    });
+    renderCustom();
     document.getElementById("diceClear").addEventListener("click", () => {
       if (box && typeof box.clear === "function") box.clear();
       clearDiceFlag();
       hideDiceToast();
       resultEl.textContent = "—";
-      subEl.textContent = "3D-heitto sheetin päällä";
+      subEl.textContent = "";
       statusEl.textContent = box ? "Valmis — heitä!" : "Fallback-tila";
       statusEl.classList.toggle("err", !box);
     });
@@ -5391,6 +5650,21 @@
     });
     try {
       if (localStorage.getItem(DICE_COLLAPSE_KEY) === "1") setDiceCollapsed(true);
+    } catch (_) { /* ignore */ }
+
+    const settingsWrap = document.getElementById("diceSettings");
+    const settingsBtn = document.getElementById("diceSettingsToggle");
+    const DICE_SETTINGS_KEY = "makhal-dice-settings-open";
+    function setDiceSettingsOpen(open) {
+      settingsWrap.classList.toggle("open", open);
+      settingsBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      try { localStorage.setItem(DICE_SETTINGS_KEY, open ? "1" : "0"); } catch (_) { /* ignore */ }
+    }
+    settingsBtn.addEventListener("click", () => {
+      setDiceSettingsOpen(!settingsWrap.classList.contains("open"));
+    });
+    try {
+      if (localStorage.getItem(DICE_SETTINGS_KEY) === "1") setDiceSettingsOpen(true);
     } catch (_) { /* ignore */ }
 
     swatches.querySelectorAll(".dice-swatch[data-color]").forEach((btn) => {
