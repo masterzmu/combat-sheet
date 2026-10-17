@@ -2790,6 +2790,629 @@
       background: var(--bg3);
       color: var(--text);
     }
+    /* =====================================================================
+       ANIMATIONS (cosmetic layer)
+       Pure CSS effects driven by one-shot classes from the "Animations" JS
+       block (window.CombatFX). Nothing here affects layout or game state.
+       Respects prefers-reduced-motion (see end of block).
+       ===================================================================== */
+
+    /* Shared FX overlays / particle layer — never intercept clicks */
+    .fx-layer,
+    .fx-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+    .fx-layer { z-index: 10060; overflow: hidden; }
+    .fx-overlay { z-index: 10040; }
+
+    /* ——— Particles (sparks / embers / motes) ——— */
+    .fx-spark {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: var(--s, 4px);
+      height: var(--s, 4px);
+      margin: calc(var(--s, 4px) / -2) 0 0 calc(var(--s, 4px) / -2);
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff 0%, var(--c, #ffb35c) 45%, transparent 72%);
+      box-shadow: 0 0 6px 1px var(--c, #ffb35c);
+      pointer-events: none;
+      will-change: transform, opacity;
+      animation: fx-spark-fly var(--d, 700ms) cubic-bezier(0.15, 0.7, 0.35, 1) forwards;
+    }
+    .fx-spark.streak {
+      border-radius: 2px;
+      width: calc(var(--s, 4px) * 0.6);
+      height: calc(var(--s, 4px) * 3);
+    }
+    @keyframes fx-spark-fly {
+      0%   { transform: translate(0, 0) rotate(var(--r, 0deg)) scale(1); opacity: 1; }
+      70%  { opacity: 0.9; }
+      100% { transform: translate(var(--dx, 0), var(--dy, -30px)) rotate(var(--r, 0deg)) scale(0.15); opacity: 0; }
+    }
+    .fx-ring {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 40px;
+      height: 40px;
+      margin: -20px 0 0 -20px;
+      border-radius: 50%;
+      border: 2px solid var(--c, var(--war));
+      box-shadow: 0 0 18px var(--c, var(--war)), inset 0 0 12px var(--c, var(--war));
+      pointer-events: none;
+      animation: fx-ring-out var(--d, 650ms) ease-out forwards;
+    }
+    @keyframes fx-ring-out {
+      0%   { transform: scale(0.3); opacity: 0.95; }
+      100% { transform: scale(var(--k, 7)); opacity: 0; }
+    }
+
+    /* ——— 1'. Spell glow (prepare / cast) — reuses the rune-flare styles ——— */
+    /* Flare on inscribe / invoke: radial glow + sweeping shimmer + rune-line redraw */
+    .fx-flare-glow,
+    .fx-flare-sweep {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+    .fx-flare-glow {
+      inset: -40%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 50%,
+        color-mix(in srgb, var(--fx-c, var(--accent)) 70%, #fff) 0%,
+        color-mix(in srgb, var(--fx-c, var(--accent)) 45%, transparent) 28%,
+        transparent 62%);
+      mix-blend-mode: screen;
+      animation: fx-flare-glow 900ms ease-out forwards;
+      z-index: -1;
+    }
+    .toggle.rune-card .fx-flare-glow { inset: -25% -15%; }
+    .rune-mark .fx-flare-glow { inset: -120%; z-index: auto; }
+    @keyframes fx-flare-glow {
+      0%   { transform: scale(0.35); opacity: 0; }
+      18%  { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.25); opacity: 0; }
+    }
+    .fx-flare-sweep { overflow: hidden; }
+    .fx-flare-sweep::before {
+      content: "";
+      position: absolute;
+      top: -20%;
+      bottom: -20%;
+      left: -60%;
+      width: 45%;
+      background: linear-gradient(100deg, transparent 0%,
+        color-mix(in srgb, var(--fx-c, var(--accent)) 35%, transparent) 40%,
+        rgba(255, 255, 255, 0.55) 50%,
+        color-mix(in srgb, var(--fx-c, var(--accent)) 35%, transparent) 60%,
+        transparent 100%);
+      transform: skewX(-12deg);
+      animation: fx-flare-sweep 750ms 80ms ease-out forwards;
+    }
+    @keyframes fx-flare-sweep {
+      0%   { left: -60%; opacity: 0; }
+      15%  { opacity: 1; }
+      100% { left: 120%; opacity: 0; }
+    }
+    .fx-rune-flare {
+      border-color: var(--fx-c, var(--accent)) !important;
+    }
+    .fx-rune-flare .rune-glyph,
+    .fx-rune-flare .rune-mark-inner,
+    .res-glyph.fx-rune-flare {
+      color: color-mix(in srgb, var(--fx-c, var(--accent)) 75%, #fff) !important;
+      animation: fx-glyph-flash 900ms ease-out !important;
+    }
+    @keyframes fx-glyph-flash {
+      0%   { filter: drop-shadow(0 0 0 transparent) brightness(1); transform: var(--fx-base-t, rotate(0deg)) scale(1); }
+      22%  { filter: drop-shadow(0 0 10px var(--fx-c, var(--accent))) drop-shadow(0 0 3px #fff) brightness(1.5); transform: var(--fx-base-t, rotate(0deg)) scale(1.18); }
+      100% { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--fx-c, var(--accent)) 55%, transparent)) brightness(1); transform: var(--fx-base-t, rotate(0deg)) scale(1); }
+    }
+    .rune-mark-inner { --fx-base-t: rotate(-45deg); }
+    /* rune-line redraw (paths get pathLength=1 from JS) */
+    .fx-rune-flare svg path[pathLength] {
+      stroke-dasharray: 1;
+      animation: fx-rune-draw 700ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+    @keyframes fx-rune-draw {
+      0%   { stroke-dashoffset: 1; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .combat-card .rune-mark.fx-rune-flare {
+      box-shadow: 0 0 18px var(--fx-c, var(--card-tone)), 0 0 4px #fff;
+      transition: box-shadow 0.6s ease-out;
+    }
+
+    /* ——— 2'. Giant Form (Goliath) — stone-giant swell, warm stone tone ——— */
+    :root { --fx-gm-c: color-mix(in srgb, var(--war) 50%, var(--maul)); }
+    .fx-storm {
+      background:
+        radial-gradient(ellipse 85% 75% at 50% 50%, transparent 58%,
+          color-mix(in srgb, var(--fx-gm-c) 40%, transparent) 88%,
+          color-mix(in srgb, #fff 55%, var(--fx-gm-c)) 100%);
+      box-shadow: inset 0 0 70px 10px color-mix(in srgb, var(--fx-gm-c) 55%, transparent);
+      opacity: 0;
+      animation: fx-storm-flash 760ms ease-out forwards;
+    }
+    @keyframes fx-storm-flash {
+      0%   { opacity: 0; }
+      8%   { opacity: 1; }
+      18%  { opacity: 0.25; }
+      30%  { opacity: 0.85; }
+      48%  { opacity: 0.2; }
+      100% { opacity: 0; }
+    }
+    .fx-bolt {
+      position: fixed;
+      top: 0;
+      height: 100vh;
+      width: 70px;
+      overflow: visible;
+      pointer-events: none;
+      opacity: 0;
+      filter: drop-shadow(0 0 6px var(--fx-gm-c)) drop-shadow(0 0 14px color-mix(in srgb, var(--fx-gm-c) 70%, transparent));
+      animation: fx-bolt-flicker 620ms steps(1, end) forwards;
+    }
+    .fx-bolt.left { left: 4px; }
+    .fx-bolt.right { right: 4px; }
+    .fx-bolt .core { stroke: #fff; stroke-width: 1.4; fill: none; stroke-linejoin: bevel; }
+    .fx-bolt .halo { stroke: var(--fx-gm-c); stroke-width: 4; fill: none; opacity: 0.65; stroke-linejoin: bevel; }
+    .fx-bolt .branch { stroke: color-mix(in srgb, var(--fx-gm-c) 80%, #fff); stroke-width: 1; fill: none; opacity: 0.8; }
+    @keyframes fx-bolt-flicker {
+      0%   { opacity: 1; }
+      12%  { opacity: 0.15; }
+      22%  { opacity: 1; }
+      40%  { opacity: 0.55; }
+      55%  { opacity: 0; }
+      62%  { opacity: 0.7; }
+      75%, 100% { opacity: 0; }
+    }
+    /* "Grow Large": the combat panel swells briefly */
+    .combat-panel { position: relative; }
+    .combat-panel.fx-gm-grow {
+      transform-origin: 50% 0;
+      animation: fx-gm-grow 720ms cubic-bezier(0.2, 0.9, 0.25, 1.1);
+    }
+    @keyframes fx-gm-grow {
+      0%   { transform: scale(1); filter: brightness(1); }
+      12%  { transform: scale(0.992); filter: brightness(1.6) saturate(1.2); }
+      45%  { transform: scale(1.03); filter: brightness(1.15); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+    /* Ongoing ambient while Giant's Might is active */
+    body.fx-gm-on .combat-panel {
+      animation: fx-gm-ambient 4.8s ease-in-out infinite;
+    }
+    body.fx-gm-on .combat-panel.fx-gm-grow {
+      animation: fx-gm-grow 720ms cubic-bezier(0.2, 0.9, 0.25, 1.1);
+    }
+    @keyframes fx-gm-ambient {
+      0%, 100% {
+        border-color: color-mix(in srgb, var(--fx-gm-c) 40%, var(--border));
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--fx-gm-c) 12%, transparent),
+                    0 0 16px color-mix(in srgb, var(--fx-gm-c) 10%, transparent);
+      }
+      50% {
+        border-color: color-mix(in srgb, var(--fx-gm-c) 60%, var(--border));
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--fx-gm-c) 22%, transparent),
+                    0 0 26px color-mix(in srgb, var(--fx-gm-c) 20%, transparent);
+      }
+      /* faint crackle */
+      71%   { box-shadow: 0 0 0 1px color-mix(in srgb, var(--fx-gm-c) 18%, transparent), 0 0 20px color-mix(in srgb, var(--fx-gm-c) 16%, transparent); }
+      72%   { box-shadow: 0 0 0 1px color-mix(in srgb, #fff 45%, var(--fx-gm-c)), 0 0 30px color-mix(in srgb, var(--fx-gm-c) 34%, transparent); }
+      73.5% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--fx-gm-c) 18%, transparent), 0 0 20px color-mix(in srgb, var(--fx-gm-c) 16%, transparent); }
+    }
+    body.fx-gm-on .combat-panel::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(110deg, transparent 35%,
+        color-mix(in srgb, var(--fx-gm-c) 9%, transparent) 48%,
+        color-mix(in srgb, #fff 6%, transparent) 50%,
+        color-mix(in srgb, var(--fx-gm-c) 9%, transparent) 52%,
+        transparent 65%) no-repeat;
+      background-size: 250% 100%;
+      animation: fx-gm-sheen 6.5s linear infinite;
+    }
+    @keyframes fx-gm-sheen {
+      0%   { background-position: 130% 0; }
+      100% { background-position: -130% 0; }
+    }
+    body.fx-gm-on .combat-round-bar .duration-chip.gm.on {
+      background-image: linear-gradient(100deg, transparent 30%,
+        color-mix(in srgb, var(--fx-gm-c) 28%, transparent) 50%, transparent 70%);
+      background-size: 220% 100%;
+      animation: fx-gm-chip 2.8s linear infinite;
+    }
+    @keyframes fx-gm-chip {
+      0%   { background-position: 120% 0; }
+      100% { background-position: -120% 0; }
+    }
+    .combat-card.fx-gm-card {
+      animation: fx-gm-card 800ms ease-out;
+    }
+    @keyframes fx-gm-card {
+      0%   { box-shadow: 0 0 0 0 transparent; }
+      15%  { box-shadow: 0 0 0 2px #fff, 0 0 26px 4px var(--fx-gm-c); }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+
+    .fx-storm.fx-stone {
+      background:
+        radial-gradient(ellipse 90% 70% at 50% 100%, color-mix(in srgb, var(--maul) 35%, transparent) 0%, transparent 60%),
+        radial-gradient(ellipse 85% 75% at 50% 50%, transparent 60%, color-mix(in srgb, var(--fx-gm-c) 45%, transparent) 100%);
+      box-shadow: inset 0 0 60px 6px color-mix(in srgb, var(--fx-gm-c) 50%, transparent);
+      animation: fx-stone-thump 760ms ease-out forwards;
+    }
+    @keyframes fx-stone-thump {
+      0%   { opacity: 0; }
+      12%  { opacity: 1; }
+      30%  { opacity: 0.45; }
+      42%  { opacity: 0.7; }
+      100% { opacity: 0; }
+    }
+    /* Hunter's Mark: target ring locks onto the chip */
+    .combat-round-bar .duration-chip.fx-hm-lock {
+      animation: fx-hm-lock 820ms ease-out;
+    }
+    @keyframes fx-hm-lock {
+      0%   { box-shadow: 0 0 0 0 transparent; }
+      25%  { box-shadow: 0 0 0 2px var(--good), 0 0 16px color-mix(in srgb, var(--good) 60%, transparent); }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+    /* Flare host for combat cards (spell cast etc.) */
+    .combat-card.fx-rune-flare { box-shadow: 0 0 0 1px var(--fx-c), 0 0 18px color-mix(in srgb, var(--fx-c) 45%, transparent); }
+    .combat-card .fx-flare-glow { inset: -20%; z-index: 0; }
+    .spell-row .fx-flare-glow { inset: -30% -5%; z-index: 0; }
+    /* ——— 3. Dice tumble on the plaque ——— */
+    .dice-toast.fx-tumbling .toast-total {
+      color: color-mix(in srgb, var(--plaque-ink) 70%, var(--plaque-deep));
+      animation: fx-tumble-jitter 110ms linear infinite;
+    }
+    .dice-toast.fx-tumbling .toast-sub { opacity: 0.55; letter-spacing: 0.2em; }
+    @keyframes fx-tumble-jitter {
+      0%   { transform: translateY(-2px) rotate(-3deg) scaleY(0.92); filter: blur(0.4px); }
+      50%  { transform: translateY(1px) rotate(2deg) scaleY(1.04); filter: blur(0.2px); }
+      100% { transform: translateY(-2px) rotate(-3deg) scaleY(0.92); filter: blur(0.4px); }
+    }
+    .dice-toast .toast-total.fx-land {
+      animation: fx-total-land 340ms cubic-bezier(0.2, 1.4, 0.4, 1);
+    }
+    @keyframes fx-total-land {
+      0%   { transform: scale(1.35); filter: blur(1px); }
+      100% { transform: scale(1); filter: blur(0); }
+    }
+
+    /* ——— 4. Resource pip spend / restore ——— */
+    .slot.fx-pip-out,
+    .combat-card .card-pip.fx-pip-out {
+      animation: fx-pip-out 560ms ease-out;
+    }
+    @keyframes fx-pip-out {
+      0%   { background: #fff6d8; border-color: #ffd27a; box-shadow: 0 0 10px 3px #ff9a4d; opacity: 1; transform: scale(1.15); }
+      35%  { background: #ff8a3d; border-color: #ff7a3d; box-shadow: 0 0 6px 1px #ff7a3d; opacity: 0.9; }
+      100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); }
+    }
+    .slot.fx-pip-in,
+    .combat-card .card-pip.fx-pip-in {
+      animation: fx-pip-in 620ms cubic-bezier(0.3, 1.3, 0.5, 1);
+    }
+    @keyframes fx-pip-in {
+      0%   { transform: scale(0.55); opacity: 0.3; filter: brightness(0.6); box-shadow: 0 0 0 0 transparent; }
+      45%  { transform: scale(1.12); opacity: 1; filter: brightness(1.45); box-shadow: 0 0 12px 2px rgba(255, 236, 190, 0.55); }
+      100% { transform: scale(1); filter: brightness(1); box-shadow: 0 0 0 0 transparent; }
+    }
+
+    /* ——— 5. Critical hit / fumble ——— */
+    .fx-crit-edge {
+      background: radial-gradient(ellipse 90% 80% at 50% 45%, transparent 64%,
+        color-mix(in srgb, var(--war) 20%, transparent) 86%,
+        color-mix(in srgb, var(--light) 55%, transparent) 100%);
+      box-shadow: inset 0 0 56px 4px color-mix(in srgb, var(--war) 62%, transparent),
+                  inset 0 0 6px 2px color-mix(in srgb, var(--light) 80%, transparent);
+      opacity: 0;
+      animation: fx-crit-edge 1100ms ease-out forwards;
+    }
+    @keyframes fx-crit-edge {
+      0%   { opacity: 0; }
+      10%  { opacity: 1; }
+      30%  { opacity: 0.6; }
+      42%  { opacity: 0.85; }
+      100% { opacity: 0; }
+    }
+    .dice-toast.crit.fx-crit-slam {
+      animation: fx-crit-slam 620ms cubic-bezier(0.25, 0.9, 0.3, 1);
+    }
+    @keyframes fx-crit-slam {
+      0%   { transform: translateX(-50%) scale(1.22); filter: brightness(1.8); }
+      18%  { transform: translateX(-50%) scale(0.96); filter: brightness(1.25); }
+      28%  { transform: translateX(calc(-50% - 7px)) translateY(2px) rotate(-1.4deg) scale(1.03); }
+      40%  { transform: translateX(calc(-50% + 6px)) translateY(-2px) rotate(1.2deg) scale(1.02); }
+      52%  { transform: translateX(calc(-50% - 4px)) translateY(1px) rotate(-0.7deg) scale(1.01); }
+      66%  { transform: translateX(calc(-50% + 2px)) rotate(0.3deg) scale(1); filter: brightness(1.05); }
+      100% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+    }
+    .fx-fumble-vignette {
+      background: radial-gradient(ellipse 75% 70% at 50% 45%, transparent 45%,
+        rgba(70, 8, 10, 0.38) 80%, rgba(40, 0, 4, 0.62) 100%);
+      opacity: 0;
+      animation: fx-fumble-vignette 1500ms ease-in-out forwards;
+    }
+    @keyframes fx-fumble-vignette {
+      0%   { opacity: 0; }
+      20%  { opacity: 1; }
+      65%  { opacity: 0.8; }
+      100% { opacity: 0; }
+    }
+
+    /* ——— Reduced motion: no movement, only brief gentle fades ——— */
+    @media (prefers-reduced-motion: reduce) {
+      body.fx-gm-on .combat-panel,
+      body.fx-gm-on .combat-panel::before,
+      body.fx-gm-on .combat-round-bar .duration-chip.gm.on,
+      .combat-panel.fx-gm-grow,
+      .combat-card.fx-gm-card,
+      .dice-toast.crit,
+      .dice-toast.fumble,
+      .dice-toast.crit.fx-crit-slam,
+      .dice-toast .toast-total.fx-land,
+      .dice-toast.fx-tumbling .toast-total,
+      .slot.fx-pip-out, .slot.fx-pip-in,
+      .combat-card .card-pip.fx-pip-out,
+      .combat-card .card-pip.fx-pip-in,
+      .fx-rune-flare .rune-glyph,
+      .fx-rune-flare .rune-mark-inner,
+      .res-glyph.fx-rune-flare,
+      .fx-rune-flare svg path[pathLength] {
+        animation: none !important;
+      }
+      body.fx-gm-on .combat-panel {
+        border-color: color-mix(in srgb, var(--cloud) 45%, var(--border));
+      }
+      .fx-spark, .fx-ring, .fx-bolt, .fx-flare-sweep { display: none !important; }
+      .fx-flare-glow { animation: fx-soft-fade 700ms ease-out forwards; transform: none; }
+      .fx-storm, .fx-crit-edge, .fx-fumble-vignette { animation: fx-soft-fade 900ms ease-out forwards; }
+      @keyframes fx-soft-fade {
+        0% { opacity: 0; }
+        25% { opacity: 0.45; }
+        100% { opacity: 0; }
+      }
+    }
+
+    /* ——— 6–9. Attacks (lyönnit), hits (osumat), misses (ohilyönnit) ——— */
+    .combat-card.attack { --fx-wpn: var(--accent); }
+    .combat-card.attack[data-weapon="maul"] { --fx-wpn: var(--maul); }
+    .combat-card.attack[data-weapon="handaxe"] { --fx-wpn: var(--axe); }
+    .combat-card.attack[data-weapon="longbow"] { --fx-wpn: var(--bow); --fx-ang: -4deg; --fx-ang-b: 3deg; }
+    .combat-card.attack[data-weapon="greatsword"] { --fx-wpn: var(--gsword); }
+    /* Per-card FX host: clipped to the card, never intercepts clicks */
+    .fx-card-fx {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .fx-card-fx > span {
+      position: absolute;
+      pointer-events: none;
+    }
+    /* Swing: a bright weapon-coloured slash streak across the card */
+    .fx-slash {
+      left: -30%;
+      top: 50%;
+      width: 160%;
+      height: 3px;
+      margin-top: -1.5px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, transparent 0%,
+        color-mix(in srgb, var(--fx-wpn) 40%, transparent) 25%,
+        color-mix(in srgb, var(--fx-wpn) 70%, #fff) 62%,
+        #fff 72%, transparent 100%);
+      box-shadow: 0 0 10px 2px color-mix(in srgb, var(--fx-wpn) 60%, transparent);
+      transform: rotate(var(--fx-ang, -24deg)) translateX(-70%) scaleY(0.6);
+      opacity: 0;
+      animation: fx-slash 440ms cubic-bezier(0.3, 0.7, 0.2, 1) forwards;
+    }
+    .fx-slash.b {
+      transform: rotate(var(--fx-ang-b, 22deg)) translateX(-70%) scaleY(0.6);
+      animation-name: fx-slash-b;
+      animation-delay: 90ms;
+    }
+    @keyframes fx-slash {
+      0%   { transform: rotate(var(--fx-ang, -24deg)) translateX(-70%) scaleY(0.5); opacity: 0; }
+      20%  { opacity: 1; }
+      70%  { transform: rotate(var(--fx-ang, -24deg)) translateX(18%) scaleY(1.2); opacity: 0.95; }
+      100% { transform: rotate(var(--fx-ang, -24deg)) translateX(45%) scaleY(0.4); opacity: 0; }
+    }
+    @keyframes fx-slash-b {
+      0%   { transform: rotate(var(--fx-ang-b, 22deg)) translateX(-70%) scaleY(0.5); opacity: 0; }
+      20%  { opacity: 1; }
+      70%  { transform: rotate(var(--fx-ang-b, 22deg)) translateX(18%) scaleY(1.2); opacity: 0.95; }
+      100% { transform: rotate(var(--fx-ang-b, 22deg)) translateX(45%) scaleY(0.4); opacity: 0; }
+    }
+    .combat-card.attack.fx-lunge {
+      animation: fx-lunge 340ms cubic-bezier(0.3, 0.8, 0.3, 1);
+    }
+    @keyframes fx-lunge {
+      0%   { transform: translate(0, 0); }
+      30%  { transform: translate(5px, -2px) rotate(0.6deg); }
+      100% { transform: translate(0, 0); }
+    }
+    /* Hit: green/weapon flash, crossed cut mark, impact jolt */
+    .fx-hit-flash {
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%,
+        color-mix(in srgb, #fff 55%, var(--good)) 0%,
+        color-mix(in srgb, var(--good) 45%, transparent) 35%,
+        color-mix(in srgb, var(--fx-wpn) 18%, transparent) 70%,
+        transparent 100%);
+      mix-blend-mode: screen;
+      opacity: 0;
+      animation: fx-hit-flash 520ms ease-out forwards;
+    }
+    .fx-hit-flash.crit {
+      background: radial-gradient(circle at 50% 50%,
+        #fff6d0 0%, color-mix(in srgb, var(--war) 60%, transparent) 38%, transparent 100%);
+    }
+    @keyframes fx-hit-flash {
+      0%   { opacity: 0; }
+      12%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .fx-cut {
+      left: 50%;
+      top: 50%;
+      width: 72%;
+      height: 3px;
+      margin: -1.5px 0 0 -36%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, #fff 20%, color-mix(in srgb, var(--fx-wpn) 60%, #fff) 50%, #fff 80%, transparent);
+      box-shadow: 0 0 8px 2px var(--fx-wpn);
+      transform: rotate(-35deg) scaleX(0);
+      animation: fx-cut 620ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+    }
+    .fx-cut.b {
+      transform: rotate(35deg) scaleX(0);
+      animation-name: fx-cut-b;
+      animation-delay: 70ms;
+    }
+    @keyframes fx-cut {
+      0%   { transform: rotate(-35deg) scaleX(0); opacity: 1; }
+      30%  { transform: rotate(-35deg) scaleX(1); opacity: 1; }
+      100% { transform: rotate(-35deg) scaleX(1.05); opacity: 0; }
+    }
+    @keyframes fx-cut-b {
+      0%   { transform: rotate(35deg) scaleX(0); opacity: 1; }
+      30%  { transform: rotate(35deg) scaleX(1); opacity: 1; }
+      100% { transform: rotate(35deg) scaleX(1.05); opacity: 0; }
+    }
+    .combat-card.attack.fx-hit-jolt {
+      animation: fx-hit-jolt 360ms cubic-bezier(0.2, 1.3, 0.4, 1);
+    }
+    @keyframes fx-hit-jolt {
+      0%   { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+      25%  { transform: scale(1.025); box-shadow: 0 0 0 2px var(--good), 0 0 22px color-mix(in srgb, var(--good) 55%, transparent); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+    }
+    /* Miss: dim + sway, muted red tint, faint whiff streak */
+    .fx-miss-tint {
+      inset: 0;
+      background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--danger) 22%, transparent) 50%, transparent);
+      opacity: 0;
+      animation: fx-miss-tint 620ms ease-out forwards;
+    }
+    @keyframes fx-miss-tint {
+      0%   { opacity: 0; }
+      25%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .fx-whiff {
+      left: -60%;
+      top: 38%;
+      width: 55%;
+      height: 26%;
+      border-radius: 50%;
+      background: linear-gradient(90deg, transparent 0%, rgba(200, 210, 225, 0.0) 10%,
+        rgba(200, 210, 225, 0.3) 55%, rgba(235, 240, 248, 0.5) 78%, transparent 100%);
+      filter: blur(2px);
+      transform: skewX(-20deg);
+      animation: fx-whiff 520ms cubic-bezier(0.4, 0, 0.3, 1) forwards;
+    }
+    .fx-whiff.b { top: 55%; height: 12%; animation-delay: 60ms; opacity: 0.7; }
+    @keyframes fx-whiff {
+      0%   { left: -60%; opacity: 0; }
+      20%  { opacity: 1; }
+      100% { left: 115%; opacity: 0; }
+    }
+    .combat-card.attack.fx-miss-sway {
+      animation: fx-miss-sway 560ms ease-out;
+    }
+    @keyframes fx-miss-sway {
+      0%   { transform: translateX(0) rotate(0); filter: brightness(1); }
+      25%  { transform: translateX(-4px) rotate(-0.8deg); filter: brightness(0.7) saturate(0.6); }
+      55%  { transform: translateX(3px) rotate(0.5deg); filter: brightness(0.8) saturate(0.7); }
+      100% { transform: translateX(0) rotate(0); filter: brightness(1); }
+    }
+    /* Vex: advantage chevron flies to the next card, which pulses */
+    .fx-vex-chevron {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 22px;
+      height: 22px;
+      margin: -11px 0 0 -11px;
+      pointer-events: none;
+      color: var(--good);
+      filter: drop-shadow(0 0 6px var(--good));
+      animation: fx-vex-fly 560ms cubic-bezier(0.5, 0, 0.3, 1) forwards;
+    }
+    .fx-vex-chevron svg { width: 100%; height: 100%; display: block; }
+    @keyframes fx-vex-fly {
+      0%   { transform: translate(0, 0) rotate(var(--rot, 90deg)) scale(0.6); opacity: 0; }
+      15%  { opacity: 1; }
+      85%  { opacity: 1; }
+      100% { transform: translate(var(--dx, 0), var(--dy, 0)) rotate(var(--rot, 90deg)) scale(1.1); opacity: 0; }
+    }
+    .combat-card.attack.has-adv.fx-adv-arrive {
+      animation: fx-adv-arrive 600ms ease-out;
+    }
+    @keyframes fx-adv-arrive {
+      0%   { box-shadow: 0 0 0 2px color-mix(in srgb, var(--good) 35%, transparent); }
+      30%  { box-shadow: 0 0 0 4px var(--good), 0 0 24px color-mix(in srgb, var(--good) 60%, transparent); }
+      100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--good) 35%, transparent); }
+    }
+    /* Damage pop: rising, fading number over the card (value = rolled total) */
+    .fx-dmg-pop {
+      position: fixed;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.9rem;
+      line-height: 1;
+      color: color-mix(in srgb, var(--fx-wpn, var(--warn)) 45%, #fff);
+      -webkit-text-stroke: 1px rgba(10, 12, 16, 0.75);
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.55), 0 0 14px var(--fx-wpn, var(--warn));
+      animation: fx-dmg-pop 1150ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+      white-space: nowrap;
+    }
+    .fx-dmg-pop.crit {
+      font-size: 2.5rem;
+      color: #fff2c2;
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.55), 0 0 18px var(--war), 0 0 4px #fff;
+    }
+    .fx-dmg-pop small {
+      font-size: 0.45em;
+      letter-spacing: 0.12em;
+      margin-left: 0.25em;
+      vertical-align: 0.6em;
+    }
+    @keyframes fx-dmg-pop {
+      0%   { transform: translate(-50%, -20%) scale(0.4); opacity: 0; }
+      14%  { transform: translate(-50%, -60%) scale(1.25); opacity: 1; }
+      30%  { transform: translate(-50%, -75%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -190%) scale(0.95); opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .combat-card.attack.fx-lunge,
+      .combat-card.attack.fx-hit-jolt,
+      .combat-card.attack.fx-miss-sway,
+      .combat-card.attack.has-adv.fx-adv-arrive,
+      .combat-round-bar .duration-chip.fx-hm-lock { animation: none !important; }
+      .fx-slash, .fx-cut, .fx-whiff, .fx-vex-chevron, .fx-dmg-pop { display: none !important; }
+      .fx-hit-flash, .fx-miss-tint { animation: fx-soft-fade 600ms ease-out forwards !important; }
+    }
+    /* ===================== end ANIMATIONS ===================== */
   </style>
 </head>
 <body>
@@ -3003,6 +3626,487 @@
 
   <footer>Sheet: Makhal Nalakthai L9 Ranger · localStorage: makhal-combat-v1 · GWF 1–2→3 · GWM +PB Heavy Attack action</footer>
 
+  <script>
+  /* =====================================================================
+     ANIMATIONS (cosmetic layer) — window.CombatFX (Makhal)
+     Purely visual. Never reads or writes game state directly: the main
+     script hands over a small snapshot after every renderAll(), and this
+     module diffs it against the previous one to detect transitions
+     (spell prepared/cast, pip spent/restored, Giant Form / Hunter's Mark on,
+     attack marked hit/miss) and
+     decorates the freshly rendered DOM with one-shot classes.
+     The dice module calls onRollLanded() when the plaque settles.
+     All effects are non-blocking (pointer-events: none, timers only).
+     ===================================================================== */
+  (function () {
+    "use strict";
+
+    const mq = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+    const reducedMotion = () => !!(mq && mq.matches);
+
+    // Private PRNG for cosmetic jitter (keeps Math.random untouched for game rolls)
+    let seed = (Date.now() ^ 0x9e3779b9) >>> 0;
+    function rnd() {
+      seed ^= seed << 13; seed >>>= 0;
+      seed ^= seed >>> 17;
+      seed ^= seed << 5; seed >>>= 0;
+      return seed / 4294967296;
+    }
+    const rr = (a, b) => a + rnd() * (b - a);
+
+    /* ——— helpers ——— */
+    let layerEl = null;
+    function layer() {
+      if (layerEl && layerEl.isConnected) return layerEl;
+      layerEl = document.createElement("div");
+      layerEl.className = "fx-layer";
+      layerEl.setAttribute("aria-hidden", "true");
+      document.body.appendChild(layerEl);
+      return layerEl;
+    }
+
+    /** Append a self-removing node (removed on animationend or after ms). */
+    function transient(el, parent, ms) {
+      (parent || document.body).appendChild(el);
+      let done = false;
+      const kill = () => { if (done) return; done = true; el.remove(); };
+      el.addEventListener("animationend", (e) => { if (e.target === el) kill(); });
+      setTimeout(kill, ms || 1600);
+      return el;
+    }
+
+    /** Restartable one-shot class. */
+    function oneShot(el, cls, ms) {
+      if (!el) return;
+      el.classList.remove(cls);
+      void el.offsetWidth; // restart animation
+      el.classList.add(cls);
+      setTimeout(() => el.classList.remove(cls), ms || 900);
+    }
+
+    function overlay(cls, ms) {
+      const el = document.createElement("div");
+      el.className = `fx-overlay ${cls}`;
+      el.setAttribute("aria-hidden", "true");
+      return transient(el, document.body, ms);
+    }
+
+    function centerOf(el) {
+      if (!el || !el.isConnected) return null;
+      const r = el.getBoundingClientRect();
+      if (!r.width && !r.height) return null;
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      if (y < -40 || y > window.innerHeight + 40 || x < -40 || x > window.innerWidth + 40) return null;
+      return { x, y };
+    }
+
+    /**
+     * Particle burst at viewport point.
+     * opts: count, colors[], dist[min,max], size[min,max], dur[min,max], rise (px upward bias), streak
+     */
+    function burst(pt, opts) {
+      if (!pt || reducedMotion()) return;
+      const o = Object.assign({
+        count: 8, colors: ["#ffd27a"], dist: [14, 34], size: [3, 5], dur: [450, 750], rise: 10, streak: false,
+      }, opts || {});
+      const host = layer();
+      for (let i = 0; i < o.count; i++) {
+        const a = (i / o.count) * Math.PI * 2 + rr(-0.35, 0.35);
+        const d = rr(o.dist[0], o.dist[1]);
+        const s = document.createElement("span");
+        s.className = "fx-spark" + (o.streak && rnd() < 0.5 ? " streak" : "");
+        const dx = Math.cos(a) * d;
+        const dy = Math.sin(a) * d - o.rise;
+        s.style.cssText =
+          `left:${pt.x}px;top:${pt.y}px;` +
+          `--dx:${dx.toFixed(1)}px;--dy:${dy.toFixed(1)}px;` +
+          `--s:${rr(o.size[0], o.size[1]).toFixed(1)}px;` +
+          `--d:${Math.round(rr(o.dur[0], o.dur[1]))}ms;` +
+          `--r:${((a * 180) / Math.PI + 90).toFixed(0)}deg;` +
+          `--c:${o.colors[i % o.colors.length]};`;
+        transient(s, host, o.dur[1] + 200);
+      }
+    }
+
+    function ring(pt, color, k, dur) {
+      if (!pt || reducedMotion()) return;
+      const el = document.createElement("span");
+      el.className = "fx-ring";
+      el.style.cssText = `left:${pt.x}px;top:${pt.y}px;--c:${color};--k:${k || 7};--d:${dur || 650}ms;`;
+      transient(el, layer(), (dur || 650) + 200);
+    }
+
+    /* ——— shared flare helpers ——— */
+    function addFlareSpans(host, withSweep) {
+      const g = document.createElement("span");
+      g.className = "fx-flare-glow";
+      g.setAttribute("aria-hidden", "true");
+      transient(g, host, 1100);
+      if (withSweep) {
+        const sw = document.createElement("span");
+        sw.className = "fx-flare-sweep";
+        sw.setAttribute("aria-hidden", "true");
+        transient(sw, host, 1100);
+        setTimeout(() => sw.remove(), 1000);
+      }
+    }
+
+    /* ——— 1'. Spell glow (Makhal has no runes: preparing / casting a spell flares instead) ——— */
+    const SPELL_LVL_COLOR = ["#9aa3b2", "#5ec8c5", "#e0a84a", "#b08cff"]; // matches .lvl-0..3 accents
+
+    function flareEl(el, color, opts) {
+      if (!el) return;
+      el.style.setProperty("--fx-c", color || "var(--accent)");
+      oneShot(el, "fx-rune-flare", 950);
+      if (opts && opts.spans) addFlareSpans(el, opts.sweep);
+    }
+
+    /** Spell newly prepared → its card/row in the spell panel flares in its level colour. */
+    function flareSpellPrepared(spellId, level) {
+      const color = SPELL_LVL_COLOR[level] || "var(--accent)";
+      const esc = window.CSS && CSS.escape ? CSS.escape(spellId) : spellId;
+      document.querySelectorAll(`#spellPanel [data-spell="${esc}"]`).forEach((el) => {
+        flareEl(el, color, { spans: true, sweep: true });
+        burst(centerOf(el), { count: 10, colors: [color, "#fff"], dist: [18, 48], size: [2.5, 4.5], dur: [500, 850], rise: 8 });
+      });
+    }
+
+    /** Combat card newly used (spell cast, Giant Form, Stone's Endurance…) → flare it. */
+    function flareCombatCard(cardId, color) {
+      if (!cardId) return;
+      const esc = window.CSS && CSS.escape ? CSS.escape(cardId) : cardId;
+      const el = document.querySelector(`#combatRoot .combat-card[data-card="${esc}"]`);
+      if (!el) return;
+      flareEl(el, color, { spans: true, sweep: true });
+      burst(centerOf(el), { count: 12, colors: [color, "#fff"], dist: [24, 60], size: [2.5, 4], dur: [450, 800], rise: 6 });
+    }
+
+    /** Hunter's Mark switched on → a target ring locks onto the Hunter's Mark chip. */
+    function huntersMarkOn() {
+      const chip = document.querySelector("#combatRoot .combat-round-bar .duration-chip:not(.gm)");
+      if (!chip) return;
+      oneShot(chip, "fx-hm-lock", 900);
+      if (reducedMotion()) return;
+      const pt = centerOf(chip);
+      ring(pt, "var(--good)", 4, 600);
+      setTimeout(() => ring(pt, "var(--good)", 2.4, 420), 140);
+      burst(pt, { count: 8, colors: ["var(--good)", "#d9ffe9"], dist: [12, 30], size: [2, 3], dur: [350, 600], rise: 0 });
+    }
+
+    /* ——— 2'. Giant Form (Goliath): stone-giant swell + ground thump ——— */
+    function giantForm() {
+      overlay("fx-storm fx-stone", 1000);
+      const panel = document.querySelector(".combat-panel");
+      if (reducedMotion()) return;
+      if (panel) oneShot(panel, "fx-gm-grow", 760);
+      const pip = document.querySelector('#combatRoot .card-pips[data-res="giantForm"]');
+      const card = pip && pip.closest(".combat-card");
+      if (card) {
+        oneShot(card, "fx-gm-card", 820);
+        burst(centerOf(card), {
+          count: 14, colors: ["var(--fx-gm-c)", "var(--maul)", "#fff3dc"], dist: [30, 80], size: [2.5, 4.5], dur: [420, 720], rise: -6,
+        });
+      }
+      // dust kicked up along the bottom edge of the combat panel
+      if (panel) {
+        const r = panel.getBoundingClientRect();
+        const y = Math.min(window.innerHeight - 8, r.bottom - 6);
+        for (let k = 0; k < 5; k++) {
+          const x = r.left + (r.width * (k + 0.5)) / 5;
+          burst({ x, y }, { count: 5, colors: ["var(--maul)", "#a8987c", "#e8dcc4"], dist: [10, 28], size: [3, 6], dur: [500, 850], rise: 22 });
+        }
+      }
+      const chip = document.querySelector("#combatRoot .duration-chip.gm");
+      if (chip) burst(centerOf(chip), { count: 8, colors: ["var(--fx-gm-c)", "#fff"], dist: [12, 30], size: [2, 3], dur: [350, 600], rise: 0 });
+    }
+
+    /* ——— 4. Resource pips ——— */
+    function pipNodes(resId) {
+      const out = [];
+      const row = document.querySelector(`#resourceList tr[data-res="${resId}"]`);
+      if (row) out.push(Array.from(row.querySelectorAll(".slot")));
+      document.querySelectorAll(`#combatRoot .card-pips[data-res="${resId}"]`).forEach((c) => {
+        out.push(Array.from(c.querySelectorAll(".card-pip")));
+      });
+      return out;
+    }
+
+    function pipsOut(resId, fromIdx, toIdx) {
+      pipNodes(resId).forEach((list) => {
+        for (let i = fromIdx; i < toIdx; i++) {
+          const el = list[i];
+          if (!el) continue;
+          oneShot(el, "fx-pip-out", 600);
+          const small = el.classList.contains("card-pip");
+          burst(centerOf(el), {
+            count: small ? 6 : 9,
+            colors: ["#ffd27a", "#ff9a4d", "#fff1c4", "var(--fire)"],
+            dist: small ? [8, 20] : [12, 28],
+            size: small ? [2, 3] : [2.5, 4],
+            dur: [420, 720],
+            rise: small ? 8 : 14,
+          });
+        }
+      });
+    }
+
+    function pipsIn(resId, fromIdx, toIdx) {
+      pipNodes(resId).forEach((list) => {
+        for (let i = fromIdx; i < toIdx; i++) {
+          const el = list[i];
+          if (el) oneShot(el, "fx-pip-in", 660);
+        }
+      });
+    }
+
+    /** Spell-slot pips in the spell panel mark casts left→right (index < cast = cast). */
+    function spellSlotPips(resId, a, b) {
+      const lvl = /^slot(\d)$/.exec(resId);
+      if (!lvl) return;
+      const list = Array.from(document.querySelectorAll(`#spellPanel .spell-slot-group.lvl-${lvl[1]} .slot`));
+      if (b > a) {
+        for (let i = a; i < b; i++) {
+          const el = list[i];
+          if (!el) continue;
+          oneShot(el, "fx-pip-out", 600);
+          burst(centerOf(el), {
+            count: 9, colors: [SPELL_LVL_COLOR[lvl[1]], "#fff", "#ffe9b0"], dist: [12, 30], size: [2.5, 4], dur: [420, 720], rise: 14,
+          });
+        }
+      } else {
+        for (let i = b; i < a; i++) if (list[i]) oneShot(list[i], "fx-pip-in", 660);
+      }
+    }
+
+    /* ——— 6–9. Attacks, hits, misses, damage pop ——— */
+    function attackCard(id) {
+      if (!id) return null;
+      const sel = `#combatRoot .combat-card.attack[data-card="${window.CSS && CSS.escape ? CSS.escape(id) : id}"]`;
+      return document.querySelector(sel);
+    }
+
+    /** Fresh, clipped FX host inside a card (replaces any previous one → no stacking). */
+    function cardFxHost(card) {
+      card.querySelectorAll(":scope > .fx-card-fx").forEach((n) => n.remove());
+      const host = document.createElement("span");
+      host.className = "fx-card-fx";
+      host.setAttribute("aria-hidden", "true");
+      card.appendChild(host);
+      setTimeout(() => host.remove(), 1000);
+      return host;
+    }
+    function fxSpan(host, cls) {
+      const s = document.createElement("span");
+      s.className = cls;
+      host.appendChild(s);
+      return s;
+    }
+    function wpnColor(card) {
+      const w = card && card.dataset.weapon;
+      return w === "maul" ? "var(--maul)" : w === "handaxe" ? "var(--axe)" : w === "longbow" ? "var(--bow)"
+        : w === "greatsword" ? "var(--gsword)" : "var(--accent)";
+    }
+
+    function swing(card, heavy) {
+      if (!card || reducedMotion()) return;
+      const host = cardFxHost(card);
+      fxSpan(host, "fx-slash");
+      if (heavy) fxSpan(host, "fx-slash b");
+      oneShot(card, "fx-lunge", 380);
+    }
+
+    function hitImpact(card, crit) {
+      if (!card) return;
+      const host = cardFxHost(card);
+      fxSpan(host, "fx-hit-flash" + (crit ? " crit" : ""));
+      if (reducedMotion()) return;
+      fxSpan(host, "fx-cut");
+      fxSpan(host, "fx-cut b");
+      oneShot(card, "fx-hit-jolt", 400);
+      const c = wpnColor(card);
+      burst(centerOf(card), {
+        count: crit ? 18 : 12,
+        colors: crit ? ["var(--war)", "var(--light)", "#fff"] : [c, "var(--good)", "#fff"],
+        dist: [26, 64], size: [2, 4], dur: [380, 650], rise: 0, streak: true,
+      });
+    }
+
+    function missWhiff(card) {
+      if (!card) return;
+      const host = cardFxHost(card);
+      fxSpan(host, "fx-miss-tint");
+      if (reducedMotion()) return;
+      fxSpan(host, "fx-whiff");
+      fxSpan(host, "fx-whiff b");
+      oneShot(card, "fx-miss-sway", 600);
+    }
+
+    const CHEVRON_SVG = '<svg viewBox="0 0 24 24"><path d="M6 4 L14 12 L6 20 M12 4 L20 12 L12 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    function vexHandoff(fromCard) {
+      if (!fromCard || !fromCard.querySelector(".vex-granted")) return;
+      const target = Array.from(document.querySelectorAll("#combatRoot .combat-card.attack.has-adv"))
+        .find((c) => c !== fromCard);
+      if (!target) return;
+      setTimeout(() => {
+        if (!target.isConnected) return;
+        oneShot(target, "fx-adv-arrive", 650);
+        if (reducedMotion()) return;
+        const a = centerOf(fromCard);
+        const b = centerOf(target);
+        if (!a || !b) return;
+        const host = layer();
+        host.querySelectorAll(".fx-vex-chevron").forEach((n) => n.remove());
+        const ch = document.createElement("span");
+        ch.className = "fx-vex-chevron";
+        ch.innerHTML = CHEVRON_SVG;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        ch.style.cssText = `left:${a.x}px;top:${a.y}px;--dx:${dx.toFixed(0)}px;--dy:${dy.toFixed(0)}px;` +
+          `--rot:${((Math.atan2(dy, dx) * 180) / Math.PI).toFixed(0)}deg;`;
+        transient(ch, host, 800);
+      }, 160);
+    }
+
+    function damagePop(card, text, crit) {
+      if (!card || reducedMotion()) return;
+      const r = card.getBoundingClientRect();
+      if (!r.width) return;
+      const host = layer();
+      const key = card.dataset.card || "";
+      host.querySelectorAll(".fx-dmg-pop").forEach((n) => { if (n.dataset.card === key) n.remove(); });
+      const el = document.createElement("span");
+      el.className = "fx-dmg-pop" + (crit ? " crit" : "");
+      el.dataset.card = key;
+      el.textContent = text;
+      if (crit) {
+        const sm = document.createElement("small");
+        sm.textContent = "CRIT";
+        el.appendChild(sm);
+      }
+      el.style.cssText = `left:${(r.left + r.width / 2).toFixed(0)}px;top:${(r.top + r.height * 0.42).toFixed(0)}px;--fx-wpn:${wpnColor(card)};`;
+      transient(el, host, 1300);
+    }
+
+    // Roll buttons are observed (never intercepted): a capture listener notes which
+    // card rolled, then the swing plays after the card's own handler has re-rendered.
+    let pendingCardRoll = null;
+    let rollListenerBound = false;
+    function bindRollObserver() {
+      if (rollListenerBound) return;
+      rollListenerBound = true;
+      document.addEventListener("click", (e) => {
+        const t = e.target;
+        if (!t || !t.closest) return;
+        if (t.closest("#diceDock")) { pendingCardRoll = null; return; }
+        const btn = t.closest("#combatRoot .combat-card.attack .roll-hit, #combatRoot .combat-card.attack .roll-dmg");
+        if (!btn) return;
+        const card = btn.closest(".combat-card.attack");
+        const id = card && card.dataset.card;
+        if (!id) return;
+        const heavy = btn.classList.contains("roll-dmg");
+        const diceBusy = !!document.querySelector("#diceDock button[data-roll]:disabled");
+        if (!diceBusy) {
+          pendingCardRoll = { id, kind: btn.hasAttribute("data-graze") ? "graze" : heavy ? "dmg" : "hit", crit: btn.classList.contains("crit-pending"), t: performance.now() };
+        }
+        requestAnimationFrame(() => swing(attackCard(id), heavy));
+      }, true);
+    }
+
+    function attackResultsDiff(prevR, nextR) {
+      Object.keys(nextR || {}).forEach((id) => {
+        const r = nextR[id];
+        if (!r || (prevR || {})[id] === r) return; // unchanged or unmarked → no replay
+        const card = attackCard(id);
+        if (r === "hit") { hitImpact(card, false); vexHandoff(card); }
+        else if (r === "miss") missWhiff(card);
+      });
+    }
+
+    /* ——— render hook ——— */
+    let prev = null;
+    function afterRender(s) {
+      if (!s) return;
+      try {
+        document.body.classList.toggle("fx-gm-on", !!s.giantForm);
+        bindRollObserver();
+        if (!prev) { prev = s; return; }
+        const p = prev;
+        prev = s;
+
+        // Spell newly prepared (spell panel)
+        s.prepared.filter((id) => !p.prepared.includes(id)).forEach((id) => flareSpellPrepared(id, s.spellLevel[id]));
+
+        // Bonus / Action / Reaction newly used → flare that combat card
+        [["usedBonus", "var(--warn)"], ["usedAction", "var(--accent)"], ["usedReaction", "var(--journey)"]].forEach(([k, c]) => {
+          const id = s[k];
+          if (!id || id === p[k]) return;
+          const sp = /^spell:(.+)$/.exec(id);
+          const color = sp ? (SPELL_LVL_COLOR[s.spellLevel[sp[1]]] || c) : (id === "giantForm" ? "var(--fx-gm-c)" : c);
+          flareCombatCard(id, color);
+        });
+
+        // Resource pips spent / restored
+        Object.keys(s.used).forEach((id) => {
+          const a = p.used[id] || 0;
+          const b = s.used[id] || 0;
+          if (a === b) return;
+          const slots = s.slots[id] || 0;
+          const leftBefore = Math.max(0, Math.min(slots, slots - a));
+          const leftAfter = Math.max(0, Math.min(slots, slots - b));
+          if (leftAfter < leftBefore) pipsOut(id, leftAfter, leftBefore);
+          else if (leftAfter > leftBefore) pipsIn(id, leftBefore, leftAfter);
+          spellSlotPips(id, Math.min(a, slots), Math.min(b, slots));
+        });
+
+        // Signature buffs switched on
+        if (s.giantForm && !p.giantForm) giantForm();
+        if (s.huntersMark && !p.huntersMark) huntersMarkOn();
+
+        // Attack cards newly marked ✓ / ✗ (unmarking never replays)
+        attackResultsDiff(p.attackResults, s.attackResults);
+      } catch (err) {
+        // Cosmetic layer must never break the tool
+        if (window.console) console.warn("FX afterRender", err);
+      }
+    }
+
+    /* ——— 3 + 5. Dice plaque landing (called by dice module) ——— */
+    function onRollLanded(flag, toastEl, totalEl) {
+      try {
+        if (totalEl && !reducedMotion()) oneShot(totalEl, "fx-land", 380);
+        // Card-originated roll: damage pop / crit flash on that card
+        const pr = pendingCardRoll;
+        pendingCardRoll = null;
+        if (pr && performance.now() - pr.t < 10000) {
+          const card = attackCard(pr.id);
+          const isDmg = toastEl && toastEl.classList.contains("kind-dmg");
+          if (pr.kind === "dmg" && isDmg && totalEl) damagePop(card, totalEl.textContent, pr.crit);
+          else if (pr.kind === "hit" && flag === "crit") hitImpact(card, true);
+        }
+        if (flag === "crit") {
+          overlay("fx-crit-edge", 1300);
+          if (toastEl) oneShot(toastEl, "fx-crit-slam", 660);
+          if (!reducedMotion() && toastEl) {
+            const pt = centerOf(toastEl);
+            ring(pt, "var(--war)", 8, 700);
+            setTimeout(() => ring(pt, "var(--light)", 5, 520), 90);
+            burst(pt, {
+              count: 34, colors: ["var(--war)", "var(--light)", "#fff6d0", "#ffb84d"],
+              dist: [70, 190], size: [3, 6], dur: [650, 1150], rise: -10, streak: true,
+            });
+          }
+        } else if (flag === "fumble") {
+          overlay("fx-fumble-vignette", 1700);
+        }
+      } catch (err) {
+        if (window.console) console.warn("FX onRollLanded", err);
+      }
+    }
+
+    window.CombatFX = { afterRender, onRollLanded, reducedMotion, rand: rnd };
+  })();
+  </script>
   <script>
 (function () {
   "use strict";
@@ -3461,7 +4565,7 @@
     const cells = Array.from({ length: r.slots }, (_, i) =>
       `<span class="card-pip${i < left ? " on" : ""}"></span>`
     ).join("");
-    return `<span class="card-pips" title="${left}/${r.slots} jäljellä" aria-label="${left} jäljellä">${cells}</span>`;
+    return `<span class="card-pips" data-res="${resourceId}" title="${left}/${r.slots} jäljellä" aria-label="${left} jäljellä">${cells}</span>`;
   }
 
   function spendResourceOnce(id) {
@@ -4268,6 +5372,8 @@
       if (card.result === "hit") box.classList.add("hit");
       if (card.result === "miss") box.classList.add("miss");
       if (card.hasAdv && !card.result) box.classList.add("has-adv");
+      box.dataset.card = card.id; // FX hook
+      box.dataset.weapon = card.weaponId || ""; // FX hook
 
       const chips = (card.chips || []).map((c) => {
         const label = c === "adv" ? "ADV" : c.charAt(0).toUpperCase() + c.slice(1);
@@ -4384,6 +5490,7 @@
           btn.type = "button";
           const pips = card.resourceId ? resourcePipsHtml(card.resourceId) : "";
           btn.className = `combat-card bonus${pips ? " has-pips" : ""}`;
+          btn.dataset.card = card.id; // FX hook
           btn.innerHTML = `
             <span class="card-title">${card.title}</span>
             <span class="card-sub">${card.sub}</span>
@@ -4401,6 +5508,7 @@
           btn.type = "button";
           const pips = card.resourceId ? resourcePipsHtml(card.resourceId) : "";
           btn.className = `combat-card ${mode}${pips ? " has-pips" : ""}`;
+          btn.dataset.card = card.id; // FX hook
           btn.innerHTML = `
             <span class="card-title">${card.title}</span>
             <span class="card-sub">${card.sub}</span>
@@ -4763,6 +5871,7 @@
     btn.className = "toggle rune-card spell-card lvl-" + spell.level
       + (on ? " active" : "")
       + (spell.always ? " always" : "");
+    btn.dataset.spell = spell.id; // FX hook
     const lvl = spell.level === 0 ? "Cantrip" : `${spell.level}. taso`;
     btn.innerHTML = `
       <span class="spell-body">
@@ -4784,6 +5893,7 @@
     row.className = "spell-row lvl-" + spell.level
       + (on ? " active" : "")
       + (spell.always ? " always" : "");
+    row.dataset.spell = spell.id; // FX hook
     row.style.setProperty("--accent", spell.level === 0 ? "#9aa3b2" : spell.level === 1 ? "#5ec8c5" : spell.level === 2 ? "#e0a84a" : "#b08cff");
     const action = document.createElement("button");
     action.type = "button";
@@ -5155,6 +6265,7 @@
 
       const tr = document.createElement("tr");
       tr.className = `rest-${restKey}`;
+      tr.dataset.res = r.id; // FX hook
 
       const tdName = document.createElement("td");
       tdName.className = "col-name";
@@ -5187,9 +6298,12 @@
         slot.disabled = passive && r.id === "ringWarmth";
         slot.addEventListener("click", () => {
           if (r.id === "ringWarmth") return;
-          if (i < used - 1) state.used[r.id] = i + 1;
-          else if (i === used - 1) state.used[r.id] = used - 1;
-          else state.used[r.id] = i + 1;
+          // Täytetty = jäljellä: täytetyn klikkaus käyttää yhden, tyhjän klikkaus palauttaa yhden
+          if (i < left) {
+            state.used[r.id] = Math.min(r.slots, used + 1);
+          } else {
+            state.used[r.id] = Math.max(0, used - 1);
+          }
           if (r.id === "huntersMark" && state.used[r.id] > used) state.buffs.huntersMark = true;
           if (r.id === "giantForm" && state.used[r.id] > used) state.buffs.giantForm = true;
           save();
@@ -5211,6 +6325,26 @@
     renderCombat();
     renderCalc();
     renderResources();
+    fxAfterRender(); // Animations hook (cosmetic only)
+  }
+
+  // ——— Animations hook: read-only snapshot for window.CombatFX ———
+  const FX_SLOTS = Object.fromEntries(RESOURCES.map((r) => [r.id, r.slots]));
+  const FX_SPELL_LEVEL = Object.fromEntries(SPELLS.map((sp) => [sp.id, sp.level]));
+  function fxAfterRender() {
+    if (!window.CombatFX || typeof window.CombatFX.afterRender !== "function") return;
+    window.CombatFX.afterRender({
+      prepared: (state.prepared || []).slice(),
+      spellLevel: FX_SPELL_LEVEL,
+      used: { ...state.used },
+      slots: FX_SLOTS,
+      giantForm: !!state.buffs.giantForm,
+      huntersMark: !!state.buffs.huntersMark,
+      usedBonus: state.combat.usedBonus || null,
+      usedAction: state.combat.usedAction || null,
+      usedReaction: state.combat.usedReaction || null,
+      attackResults: { ...(state.combat.attackResults || {}) },
+    });
   }
 
   document.getElementById("btnNewTurn").addEventListener("click", () => {
@@ -5325,6 +6459,7 @@
     }
 
     function hideDiceToast() {
+      cancelTumble();
       if (!toastEl) return;
       toastEl.classList.remove("show");
       const finish = () => {
@@ -5342,8 +6477,53 @@
       toastTimer = setTimeout(finish, 220);
     }
 
-    /** Always-visible result HUD over the canvas (works with dock collapsed). */
+    /* ——— Animations: dice tumble (cosmetic only) ———
+       Final numbers are computed by summarize() before this runs; the plaque
+       just cycles random-looking faces for ~600 ms, then shows the exact
+       result via showDiceToastNow(). Dock result / crit state are not delayed. */
+    let tumbleTimer = null;
+    function cancelTumble() {
+      if (tumbleTimer) { clearTimeout(tumbleTimer); tumbleTimer = null; }
+      if (toastEl) toastEl.classList.remove("fx-tumbling");
+    }
     function showDiceToast(opts) {
+      const fx = window.CombatFX;
+      cancelTumble();
+      const land = () => {
+        tumbleTimer = null;
+        showDiceToastNow(opts);
+        if (fx) fx.onRollLanded(opts.flag, toastEl, toastTotalEl);
+      };
+      if (!toastEl || !toastTotalEl || !fx || fx.reducedMotion()) { land(); return; }
+      if (toastTimer) clearTimeout(toastTimer);
+      const kind = opts.kind;
+      const kindCls = kind === "hit" || kind === "dmg" || kind === "d20" ? kind : "other";
+      toastEl.hidden = false;
+      toastEl.className = `dice-toast show kind-${kindCls} fx-tumbling`;
+      if (toastKindEl) toastKindEl.textContent = kindTitle(kindCls);
+      if (toastFlagEl) { toastFlagEl.textContent = ""; toastFlagEl.classList.remove("show"); }
+      if (toastSubEl) toastSubEl.textContent = "· · ·";
+      const range = Array.isArray(opts.range) ? opts.range : [1, 20];
+      const lo = Math.min(range[0], range[1]);
+      const hi = Math.max(range[0], range[1]);
+      const start = performance.now();
+      const DURATION = 600;
+      let last = null;
+      const step = () => {
+        const t = performance.now() - start;
+        if (t >= DURATION) { land(); return; }
+        let v = lo + Math.floor(fx.rand() * (hi - lo + 1));
+        if (v === last && hi > lo) v = v === hi ? lo : v + 1;
+        last = v;
+        toastTotalEl.textContent = String(v);
+        // ease-out cadence: faces flip fast, then settle
+        tumbleTimer = setTimeout(step, 40 + 110 * (t / DURATION) * (t / DURATION));
+      };
+      step();
+    }
+
+    /** Always-visible result HUD over the canvas (works with dock collapsed). */
+    function showDiceToastNow(opts) {
       if (!toastEl) return;
       const { total, sub, flag, flagText, kind } = opts;
       if (toastTimer) clearTimeout(toastTimer);
@@ -5436,6 +6616,7 @@
         flag,
         flagText: plaqueFlagText(flag, kind, nat),
         kind,
+        range: [used.length + mod, used.length * faces + mod], // FX: tumble range only
       });
 
       // Crit arms next damage roll; non-crit / fumble clears it
